@@ -25,6 +25,8 @@ data_geckos<-data_geckos[,-2]
 data_geckos[,c(1,3:7,29)]<-lapply(data_geckos[,c(1,3:7,29)],as.factor)
 ## Removing odd observation 
 data_geckos<-data_geckos[data_geckos$svl !=7.5,]
+# Averaging toepad lamellas
+data_geckos$lamella<-apply(data_geckos[,c(18:19)],1,mean)
 ```
 
 ### **Lizards**
@@ -70,14 +72,18 @@ library(DHARMa)
 library(car)
 library(multcomp)
 library(emmeans)
-rosnerTest(log10(data_geckos$svl),k=10) # checking for outliers
+tapply(data_geckos$svl,data_geckos$snakes,function(x) rosnerTest(log10(x),k=10)) # checking for outliers
+plot(svl~sex,data=data_geckos)
+plot(svl~snakes,data=data_geckos)
+plot(svl~site,data=data_geckos)
 
 # GLM with dispersion factor
-glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes,data=data_geckos,dispformula = ~sex+snakes)
+glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes+(1|site),data=data_geckos,dispformula = ~site)
 plotResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 testResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
-Anova(glm_disp_svl_inter,type=3)
+Anova(glm_disp_svl_inter,type=2)
 pairs(emmeans(glm_disp_svl_inter,~snakes|sex))
+pairs(emmeans(glm_disp_svl_inter,~sex|snakes))
 lapply(split(data_geckos,data_geckos$sex),function(x) tapply(x$svl,x$snakes,function(x) mean(x,na.rm=T)))
 lapply(split(data_geckos,data_geckos$sex),function(x) tapply(x$svl,x$snakes,function(x) sd(x,na.rm=T)))
 tapply(data_geckos$svl,data_geckos$snakes, mean)
@@ -105,14 +111,18 @@ library(DHARMa)
 library(car)
 library(multcomp)
 library(emmeans)
-rosnerTest(log10(data_lizards$svl),k=10) # checking for outliers
+tapply(data_lizards$svl,data_lizards$snakes,function(x) rosnerTest(log10(x),k=10)) # checking for outliers
+plot(svl~sex,data=data_lizards)
+plot(svl~snakes,data=data_lizards)
+plot(svl~site,data=data_lizards)
 
 # GLM with dispersion factor
-glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes,data=data_lizards,dispformula = ~sex)
+glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes+(1|site),data=data_lizards,dispformula = ~site+sex)
 plotResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 testResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
-Anova(glm_disp_svl_inter,type=3)
+Anova(glm_disp_svl_inter,type=2)
 pairs(emmeans(glm_disp_svl_inter,~snakes|sex))
+pairs(emmeans(glm_disp_svl_inter,~sex|snakes))
 lapply(split(data_lizards,data_lizards$sex),function(x) tapply(x$svl,x$snakes,function(x) mean(x,na.rm=T)))
 lapply(split(data_lizards,data_lizards$sex),function(x) tapply(x$svl,x$snakes,function(x) sd(x,na.rm=T)))
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
@@ -137,14 +147,18 @@ library(DHARMa)
 library(car)
 library(multcomp)
 library(emmeans)
-rosnerTest(log10(data_skinks$svl),k=10) # checking for outliers
+tapply(data_skinks$svl,data_skinks$snakes,function(x) rosnerTest(log10(x),k=10)) # checking for outliers
+plot(svl~sex,data=data_skinks)
+plot(svl~snakes,data=data_skinks)
+plot(svl~site,data=data_skinks)
 
 # GLM with dispersion factor
-glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes,data=data_skinks,dispformula = ~sex)
+glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes+(1|site),data=data_skinks,dispformula = ~site+sex)
 plotResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 testResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
-Anova(glm_disp_svl_inter,type=3)
+Anova(glm_disp_svl_inter,type=2)
 pairs(emmeans(glm_disp_svl_inter,~snakes|sex))
+pairs(emmeans(glm_disp_svl_inter,~sex|snakes))
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 
 # Levene Test for the homogeneity of the variance
@@ -158,185 +172,106 @@ rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ### **Building data for Veusz**
 
 ```{r veusz: body size}
-fem_inv_geckos<-data_geckos[data_geckos$sex=="FEM" & data_geckos$snakes=="YES",15]
-fem_notinv_geckos<-data_geckos[data_geckos$sex=="FEM" & data_geckos$snakes=="NO",15]
-mal_inv_geckos<-data_geckos[data_geckos$sex=="MAL" & data_geckos$snakes=="YES",15]
-mal_notinv_geckos<-data_geckos[data_geckos$sex=="MAL" & data_geckos$snakes=="NO",15]
-fem_inv_lizards<-data_lizards[data_lizards$sex=="FEM" & data_lizards$snakes=="YES",16]
-fem_notinv_lizards<-data_lizards[data_lizards$sex=="FEM" & data_lizards$snakes=="NO",16]
-mal_inv_lizards<-data_lizards[data_lizards$sex=="MAL" & data_lizards$snakes=="YES",16]
-mal_notinv_lizards<-data_lizards[data_lizards$sex=="MAL" & data_lizards$snakes=="NO",16]
-fem_inv_skinks<-data_skinks[data_skinks$sex=="FEM" & data_skinks$snakes=="YES",23]
-fem_notinv_skinks<-data_skinks[data_skinks$sex=="FEM" & data_skinks$snakes=="NO",23]
-mal_inv_skinks<-data_skinks[data_skinks$sex=="MAL" & data_skinks$snakes=="YES",23]
-mal_notinv_skinks<-data_skinks[data_skinks$sex=="MAL" & data_skinks$snakes=="NO",23]
-n<-max(nrow(fem_inv_geckos),nrow(fem_notinv_geckos),nrow(mal_inv_geckos),nrow(mal_notinv_geckos),nrow(fem_inv_lizards),nrow(fem_notinv_lizards),nrow(mal_inv_lizards),nrow(mal_notinv_lizards),nrow(fem_inv_skinks),nrow(fem_notinv_skinks),nrow(mal_inv_skinks),nrow(mal_notinv_skinks))
-list<-list(fem_inv_geckos,fem_notinv_geckos,mal_inv_geckos,mal_notinv_geckos,fem_inv_lizards,fem_notinv_lizards,mal_inv_lizards,mal_notinv_lizards,fem_inv_skinks,fem_notinv_skinks,mal_inv_skinks,mal_notinv_skinks)
-list<-lapply(list,function(x) as.vector(x[[1]]))
-fem_inv_geckos<-list[[1]]
-fem_notinv_geckos<-list[[2]]
-mal_inv_geckos<-list[[3]]
-mal_notinv_geckos<-list[[4]]
-fem_inv_lizards<-list[[5]]
-fem_notinv_lizards<-list[[6]]
-mal_inv_lizards<-list[[7]]
-mal_notinv_lizards<-list[[8]]
-fem_inv_skinks<-list[[9]]
-fem_notinv_skinks<-list[[10]]
-mal_inv_skinks<-list[[11]]
-mal_notinv_skinks<-list[[12]]
-length(fem_inv_geckos)<-n
-length(fem_notinv_geckos)<-n
-length(mal_inv_geckos)<-n
-length(mal_notinv_geckos)<-n
-length(fem_inv_lizards)<-n
-length(fem_notinv_lizards)<-n
-length(mal_inv_lizards)<-n
-length(mal_notinv_lizards)<-n
-length(fem_inv_skinks)<-n
-length(fem_notinv_skinks)<-n
-length(mal_inv_skinks)<-n
-length(mal_notinv_skinks)<-n
-fig_bodysize<-cbind(fem_inv_geckos,fem_notinv_geckos,mal_inv_geckos,mal_notinv_geckos,fem_inv_lizards,fem_notinv_lizards,mal_inv_lizards,mal_notinv_lizards,fem_inv_skinks,fem_notinv_skinks,mal_inv_skinks,mal_notinv_skinks)
+mean_geckos<-aggregate(data_geckos$svl,by=list(data_geckos$snakes,data_geckos$sex),function(x) mean(x,na.rm=T))
+mean_lizards<-aggregate(data_lizards$svl,by=list(data_lizards$snakes,data_lizards$sex),function(x) mean(x,na.rm=T))
+mean_skinks<-aggregate(data_skinks$svl,by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
+sd_geckos<-aggregate(data_geckos$svl,by=list(data_geckos$snakes,data_geckos$sex),function(x) sd(x,na.rm=T))
+sd_lizards<-aggregate(data_lizards$svl,by=list(data_lizards$snakes,data_lizards$sex),function(x) sd(x,na.rm=T))
+sd_skinks<-aggregate(data_skinks$svl,by=list(data_skinks$snakes,data_skinks$sex),function(x) sd(x,na.rm=T))
+fig_bodysize<-cbind(mean_geckos,sd_geckos[,3],mean_lizards[,3],sd_lizards[,3],mean_skinks[,3],sd_skinks[,3])
+colnames(fig_bodysize)<-c("snakes","sex","mean_geckos","sd_geckos","mean_lizards","sd_lizards","mean_skinks","sd_skinks")
 write.csv(fig_bodysize,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_bodysize/bodysize.csv")
+rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
 
-
-### **Analysis of morphological traits**
+### **Analysis of remaining morphological traits**
 
 #### **Geckos**
 
 ```{r outliers}
-library(lme4)
+library(glmmTMB)
 library(rstatix)
 library(car)
 library(EnvStats)
 library(naniar)
+library(stringr)
 
 # Checking for and removing outliers due to observer errors
-morphology<-data_geckos[,8:15]
-morphology<-complete.cases(morphology)
-morphology<-lapply(data_geckos[,8:15],function(x) lm(log10(x)~log10(svl),data=data_geckos))
+morphology<-data_geckos[,c(8:15,18,19,30)]
+morphology<-lapply(data_geckos[,c(8:15,18,19,30)],function(x) lm(log10(x)~log10(svl),data=data_geckos))
 morphology<-lapply(morphology,"[[","residuals")
 morphology<-morphology[-8]
-morphology<-do.call(cbind,morphology)
+names<-lapply(morphology,names)
+names<-lapply(names,as.numeric)
+morphology<-mapply(function(x,y) cbind(x,y),x=morphology,y=names)
+morphology<-Reduce(function(x,y) merge(x,y,by="y",all=T),morphology)
+colnames(morphology)<-c("id",names(data_geckos[,c(8:14,18,19,30)]))
+morphology<-morphology[,-1]
 factors<-data_geckos[,c(1:7)]
 morphology<-merge(factors,morphology,by="row.names",all=T)
 morphology<-morphology[,-1]
-rosner_test<-lapply(morphology[,8:14],function(x) rosnerTest(x,k=10))
-outliers<-lapply(rosner_test, "[[","all.stats")
-outliers<-lapply(outliers,"[",c(5,8))
-outliers<-lapply(outliers,function(x) x[x$Outlier=="TRUE",])
-outliers<-lapply(outliers,"[",c(1))
-names<-names(outliers)
-outliers<-do.call(rbind,outliers)
-id<-lapply(outliers$Obs.Num,function(x) morphology[x,])
-id<-lapply(id, "[",1)
-outliers<-cbind(outliers,do.call(rbind,id))
-outliers$variable<-row.names(outliers)
-outliers$variable<-gsub("\\.","",outliers$variable)
-outliers$variable<-gsub("[[:digit:]]+","",outliers$variable)
-x<-lapply(outliers$id,function(x) which(grepl(x,data_geckos$id)))
-x<-lapply(x,"[",1)
-row_number<-do.call(rbind,x)
-outliers<-cbind(outliers,row_number)
-data_geckos$head_length[121]<-NA
-data_geckos$head_length[47]<-NA
-data_geckos$head_length[195]<-NA 
-data_geckos$head_length[2]<-NA 
-data_geckos$head_length[67]<-NA
-data_geckos$head_width[199]<-NA
-data_geckos$head_width[70]<-NA
-data_geckos$head_width[52]<-NA
-data_geckos$head_height[233]<-NA
-data_geckos$lfl[140]<-NA
-data_geckos$lfl[3]<-NA
-data_geckos$lfl[158]<-NA
-data_geckos$lfl[2]<-NA
-data_geckos$front_toe[140]<-NA
-# (data_geckos$front_toe[226]<-NA) not included because does not seem an error
-# (data_geckos$front_toe[148]<-NA) not included because does not seem an error
-data_geckos$lhl[2]<-NA
-# (data_geckos$lhl[28]<-NA) not included because does not seem an error
+rosner_test<-lapply(morphology[,8:17],function(x) tapply(x,morphology$snakes,function(y) rosnerTest(y,k=10)))
+# Removing outliers morphology
+morphology$head_length[c(26,189,211,107,112)]<-NA
+morphology$head_width[c(215,195,111)]<-NA
+morphology$head_height[150]<-NA 
+morphology$lfl[c(66,170,112,47)]<-NA
+morphology$front_toe[c(47,143)]<-NA # 55 not included, does not seem error
+morphology$lhl[c(112)]<-NA # 168 not included, does not seem error
+morphology$hind_toe[236]<-NA
+# Removing outliers data
+data_geckos$head_length[c(121,47,67,195,2)]<-NA
+data_geckos$head_width[c(70,52,199)]<-NA
+data_geckos$head_height[233]<-NA 
+data_geckos$lfl[c(158,3,2,140)]<-NA
+data_geckos$front_toe[c(140,227)]<-NA # 148 not included, does not seem error
+data_geckos$lhl[c(2)]<-NA # 28 not included, does not seem error
 data_geckos$hind_toe[9]<-NA
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
-
-# Checking outliers for lamellae
-lapply(data_geckos[,18:19],function(x) rosnerTest(x,k=10))
 ```
 
 ```{r morphology analysis}
-library(emmeans)
+library(glmmTMB)
 library(effects)
 library(DHARMa)
 library(MASS)
 library(gplots)
-# MANCOVA of morphological measures with interaction
-mancova<-lm(cbind(log10(head_length),log10(head_width),log10(head_height),log10(lfl),log10(front_toe),log10(lhl),log10(hind_toe))~log10(svl)+sex*snakes,data=data_geckos)
-qqnorm(residuals(mancova)) # checking normality assumption
-names<-names(data_geckos[,8:14])
-mapply(function(x,y) plot(data_geckos$svl,x,col=data_geckos$snakes,xlab="svl",ylab = y),x=data_geckos[,8:14],y=names) # checking linearity assumption
-lapply(data_geckos[,8:14],function(x) vif(lm(log10(x)~log10(svl)+snakes+sex,data=data_geckos))) # checking multicollinearity
-plot(fitted(mancova),residuals(mancova)) # checking homocedasticity
-lapply(data_geckos[,8:14],function(x) boxplot(x~sex*snakes,data=data_geckos))
-anova_test(data_geckos,log10(head_length)~log10(svl)*sex*snakes,type=2)
-anova_test(data_geckos,log10(head_width)~log10(svl)*sex*snakes,type=2)
-anova_test(data_geckos,log10(head_height)~log10(svl)*sex*snakes,type=2)
-anova_test(data_geckos,log10(lfl)~log10(svl)*sex*snakes,type=2)
-anova_test(data_geckos,log10(front_toe)~log10(svl)*sex*snakes,type=2)
-anova_test(data_geckos,log10(lhl)~log10(svl)*sex*snakes,type=2)
-anova_test(data_geckos,log10(hind_toe)~log10(svl)*sex*snakes,type=2)
-## Checking with GLMs
-models<-lapply(data_geckos[,c(8:14)],function(x) glm(log10(x)~log10(svl)+sex*snakes,data=data_geckos))
-lapply(models,plot)
-lapply(models,Anova)
-## Results
-summary(mancova)
-pairs(emmeans(mancova,~snakes))
-Anova(mancova,type=2)
+library(car)
 
-# Chi square of the number of individuals with tail broken
-attach(data_geckos)
-table(tail,snakes)
-chisq.test(table(tail,snakes))
-with(data_geckos[data_geckos$sex=="FEM",],chisq.test(table(tail,snakes)))
-with(data_geckos[data_geckos$sex=="MAL",],chisq.test(table(tail,snakes)))
-rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
+lapply(data_geckos[,c(8:14)],function(x) plotmeans(x~sex,data=data_geckos))
+lapply(data_geckos[,c(8:14)],function(x) plotmeans(x~site,data=data_geckos))
+lapply(data_geckos[,c(8:14)],function(x) plotmeans(x~snakes,data=data_geckos))
+
+models<-lapply(data_geckos[,c(8:14)],function(x) glmmTMB(log10(x)~log10(svl)+sex*snakes+(1|site),data=data_geckos,dispformula =~site))
+lapply(models,function(x) plot(simulateResiduals(x,n=1000)))
+lapply(models,function(x) testResiduals(simulateResiduals(x,n=1000)))
+lapply(models,function(x) Anova(x,type=2))
+results_geckos<-lapply(models,function(x) Anova(x,type=2))
+results_geckos<-do.call(rbind,results_geckos)
+lapply(models,function(x) pairs(emmeans(x,~snakes|sex)))
+lapply(models,function(x) pairs(emmeans(x,~sex|snakes)))
+
+write.csv(results_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table 1/results_geckos.csv")
 
 # Analysis of lamellae
-## Checking svl and sex are not relevant
-lm_right<-summary(lm(lamella_right~svl,data=data_geckos))
-lm_left<-summary(lm(lamella_left~svl,data=data_geckos))
-## Analysis
-### All individuals
-leveneTest(lamella_left~snakes,data=data_geckos)
-wilcox.test(lamella_left~snakes,data=data_geckos,paired=F)
-wilcox.test(lamella_right~snakes,data=data_geckos,paired=F)
-mean_left_all<-tapply(data_geckos$lamella_left, data_geckos$snakes, function(x) mean(x,na.rm=T))
-mean_right_all<-tapply(data_geckos$lamella_right, data_geckos$snakes, function(x) mean(x,na.rm=T))
-sd_left_all<-tapply(data_geckos$lamella_left, data_geckos$snakes, function(x) sd(x,na.rm=T))
-sd_right_all<-tapply(data_geckos$lamella_right, data_geckos$snakes, function(x) sd(x,na.rm=T))
-table_all<-cbind(mean_left_all,mean_right_all,sd_left_all,sd_right_all)
-plotmeans(lamella_right ~snakes,data=data_geckos)
-### Females
-leveneTest(lamella_left~snakes,data=data_geckos[data_geckos$sex=="FEM",])
-wilcox.test(lamella_left~snakes,data=data_geckos[data_geckos$sex=="FEM",],paired=F)
-wilcox.test(lamella_right~snakes,data=data_geckos[data_geckos$sex=="FEM",],paired=F)
-mean_left_fem<-tapply(data_geckos[data_geckos$sex=="FEM",]$lamella_left, data_geckos[data_geckos$sex=="FEM",]$snakes, function(x) mean(x,na.rm=T))
-mean_right_fem<-tapply(data_geckos[data_geckos$sex=="FEM",]$lamella_right, data_geckos[data_geckos$sex=="FEM",]$snakes, function(x) mean(x,na.rm=T))
-sd_left_fem<-tapply(data_geckos[data_geckos$sex=="FEM",]$lamella_left, data_geckos[data_geckos$sex=="FEM",]$snakes, function(x) sd(x,na.rm=T))
-sd_right_fem<-tapply(data_geckos[data_geckos$sex=="FEM",]$lamella_right, data_geckos[data_geckos$sex=="FEM",]$snakes, function(x) sd(x,na.rm=T))
-table_females<-cbind(mean_left_fem,mean_right_fem,sd_left_fem,sd_right_fem)
-### Males
-leveneTest(lamella_left~snakes,data=data_geckos[data_geckos$sex=="MAL",])
-wilcox.test(lamella_left~snakes,data=data_geckos[data_geckos$sex=="MAL",],paired=F)
-wilcox.test(lamella_right~snakes,data=data_geckos[data_geckos$sex=="MAL",],paired=F)
-mean_left_mal<-tapply(data_geckos[data_geckos$sex=="MAL",]$lamella_left, data_geckos[data_geckos$sex=="MAL",]$snakes, function(x) mean(x,na.rm=T))
-mean_right_mal<-tapply(data_geckos[data_geckos$sex=="MAL",]$lamella_right, data_geckos[data_geckos$sex=="MAL",]$snakes, function(x) mean(x,na.rm=T))
-sd_left_mal<-tapply(data_geckos[data_geckos$sex=="MAL",]$lamella_left, data_geckos[data_geckos$sex=="MAL",]$snakes, function(x) sd(x,na.rm=T))
-sd_right_mal<-tapply(data_geckos[data_geckos$sex=="MAL",]$lamella_right, data_geckos[data_geckos$sex=="MAL",]$snakes, function(x) sd(x,na.rm=T))
-table_males<-cbind(mean_left_mal,mean_right_mal,sd_left_mal,sd_right_mal)
-rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
+with(data_geckos,cor.test(lamella,log10(svl),method="spearman"))
+model_checking<-lapply(data_geckos[,c(18:19)],function(x) glmmTMB(x~log10(svl)+sex+(1|site),data=data_geckos,family=compois(link="log")))
+lapply(model_checking,function(x) plot(simulateResiduals(x,n=1000)))
+lapply(model_checking,function(x) Anova(x,type=2))
+
+data_lamella<-aggregate(data_geckos$lamella,by=list(data_geckos$site,data_geckos$sex),function(x) mean(x,na.rm=T))
+colnames(data_lamella)<-c("site","sex","lamella")
+data_lamella$snakes<-substr(data_lamella$site,1,1)
+data_lamella$snakes<-replace(data_lamella$snakes,data_lamella$snakes==1,"YES")
+data_lamella$snakes<-replace(data_lamella$snakes,data_lamella$snakes==2,"NO")
+lapply(split(data_lamella,data_lamella$sex),function(x) leveneTest(lamella~snakes,data=x))
+lapply(split(data_lamella,data_lamella$sex),function(x) kruskal.test(lamella~snakes,data=x))
+
+aggregate(data_lamella$lamella,by=list(data_lamella$snakes,data_lamella$sex),mean)
+aggregate(data_lamella$lamella,by=list(data_lamella$snakes,data_lamella$sex),sd)
+
+
+rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder","morphology")))
 ```
 
 #### **Lizards**
@@ -350,77 +285,56 @@ library(naniar)
 
 # Checking for and removing outliers due to observer errors
 morphology<-data_lizards[,8:16]
-morphology<-complete.cases(morphology)
 morphology<-lapply(data_lizards[,8:16],function(x) lm(log10(x)~log10(svl),data=data_lizards))
 morphology<-lapply(morphology,"[[","residuals")
 morphology<-morphology[-9]
-morphology<-do.call(cbind,morphology)
-factors<-data_lizards[,c(1:7,33)]
+names<-lapply(morphology,names)
+names<-lapply(names,as.numeric)
+morphology<-mapply(function(x,y) cbind(x,y),x=morphology,y=names)
+morphology<-Reduce(function(x,y) merge(x,y,by="y",all=T),morphology)
+colnames(morphology)<-c("id",names(data_lizards[,c(8:15)]))
+morphology<-morphology[,-1]
+factors<-data_lizards[-c(29,30),c(1:7)]
 morphology<-merge(factors,morphology,by="row.names",all=T)
 morphology<-morphology[,-1]
-rosner_test<-lapply(morphology[,9:16],function(x) rosnerTest(x,k=10))
-outliers<-lapply(rosner_test, "[[","all.stats")
-outliers<-lapply(outliers,"[",c(5,8))
-outliers<-lapply(outliers,function(x) x[x$Outlier=="TRUE",])
-outliers<-lapply(outliers,"[",c(1))
-names<-names(outliers)
-outliers<-do.call(rbind,outliers)
-id<-lapply(outliers$Obs.Num,function(x) morphology[x,])
-id<-lapply(id, "[",1)
-outliers<-cbind(outliers,do.call(rbind,id))
-outliers$variable<-row.names(outliers)
-outliers$variable<-gsub("\\.","",outliers$variable)
-outliers$variable<-gsub("[[:digit:]]+","",outliers$variable)
-row_number<-do.call(rbind,lapply(outliers$id,function(x) which(grepl(x,data_lizards$id))))
-outliers<-cbind(outliers,row_number)
-data_lizards$head_length[76]<-NA
-data_lizards$head_length[142]<-NA
-data_lizards$head_length[66]<-NA
+rosner_test<-lapply(morphology[,8:15],function(x) tapply(x,morphology$snakes,function(y) rosnerTest(y,k=10)))
+# Removing outliers from morphology
+morphology$head_length[c(114,47,103)]<-NA
+morphology$head_height[95]<-NA
+morphology$snout_length[c(113,34)]<-NA
+morphology$lfl[40]<-NA
+morphology$front_toe[140]<-NA
+morphology$lhl[c(68,62)]<-NA
+morphology$hind_toe[c(96)]<-NA
+# Removing outliers from data
+data_lizards$head_length[c(76,142,66)]<-NA
 data_lizards$head_height[59]<-NA
-data_lizards$snout_length[75]<-NA
-data_lizards$snout_length[131]<-NA
+data_lizards$snout_length[c(75,131)]<-NA
 data_lizards$lfl[136]<-NA
 data_lizards$front_toe[100]<-NA
-data_lizards$lhl[34]<-NA
-data_lizards$lhl[27]<-NA
-data_lizards$hind_toe[60]<-NA
+data_lizards$lhl[c(34,27)]<-NA
+data_lizards$hind_toe[c(60)]<-NA
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
 
 ```{r morphology analysis}
 library(emmeans)
 library(effects)
-# MANCOVA of morphological measures with interaction
-mancova<-lm(cbind(log10(head_length),log10(head_width),log10(head_height),log10(snout_length),log10(lfl),log10(front_toe),log10(lhl),log10(hind_toe))~log10(svl)+sex*snakes,data=data_lizards)
-qqnorm(residuals(mancova)) # checking normality assumption
-names<-names(data_lizards[,8:15])
-mapply(function(x,y) plot(data_lizards$svl,x,col=data_lizards$snakes,xlab="svl",ylab = y),x=data_lizards[,8:15],y=names) # checking linearity assumption
-lapply(data_lizards[,8:15],function(x) vif(lm(log10(x)~log10(svl)+snakes+sex,data=data_lizards))) # checking multicollinearity
-plot(fitted(mancova),residuals(mancova)) # checking homocedasticity
-lapply(data_lizards[,8:15],function(x) boxplot(x~sex*snakes,data=data_lizards))
-anova_test(data_lizards,log10(head_length)~log10(svl)*sex*snakes,type=2)
-anova_test(data_lizards,log10(head_width)~log10(svl)*sex*snakes,type=2)
-anova_test(data_lizards,log10(head_height)~log10(svl)*sex*snakes,type=2)
-anova_test(data_lizards,log10(snout_length)~log10(svl)*sex*snakes,type=2)
-anova_test(data_lizards,log10(lfl)~log10(svl)*sex*snakes,type=2)
-anova_test(data_lizards,log10(front_toe)~log10(svl)*sex*snakes,type=2)
-anova_test(data_lizards,log10(lhl)~log10(svl)*sex*snakes,type=2)
-anova_test(data_lizards,log10(hind_toe)~log10(svl)*sex*snakes,type=2)
-## Checking with GLMs
-models<-lapply(data_lizards[,c(8:15)],function(x) glm(log10(x)~log10(svl)+sex*snakes,data=data_lizards))
-lapply(models,plot)
-lapply(models,Anova)
-## Results
-summary(mancova)
-pairs(emmeans(mancova,~snakes))
-Anova(mancova,type=2)
 
-# Chi square of the number of individuals with tail broken
-attach(data_lizards)
-table(tail,snakes)
-chisq.test(table(tail,snakes))
-with(data_lizards[data_lizards$sex=="FEM",],chisq.test(table(tail,snakes)))
-with(data_lizards[data_lizards$sex=="MAL",],chisq.test(table(tail,snakes)))
+lapply(data_lizards[,c(8:15)],function(x) plotmeans(x~sex,data=data_lizards))
+lapply(data_lizards[,c(8:15)],function(x) plotmeans(x~site,data=data_lizards))
+lapply(data_lizards[,c(8:15)],function(x) plotmeans(x~snakes,data=data_lizards))
+
+models<-lapply(data_lizards[,c(8:15)],function(x) glmmTMB(log(x)~log(svl)+sex*snakes+(1|site),data=data_lizards,dispformula = ~site))
+lapply(models,function(x) plot(simulateResiduals(x,n=1000)))
+lapply(models,function(x) Anova(x,type=2))
+results_lizards<-lapply(models,function(x) Anova(x,type=2))
+results_lizards<-do.call(rbind,results_lizards)
+lapply(models,function(x) pairs(emmeans(x,~snakes|sex)))
+lapply(models,function(x) pairs(emmeans(x,~sex|snakes)))
+
+write.csv(results_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table 1/results_lizards.csv")
+
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
 
@@ -435,123 +349,81 @@ library(naniar)
 
 # Checking for and removing outliers due to observer errors
 morphology<-data_skinks[,8:28]
-morphology<-complete.cases(morphology)
 morphology<-lapply(data_skinks[,8:28],function(x) lm(log10(x)~log10(svl),data=data_skinks))
 morphology<-lapply(morphology,"[[","residuals")
 morphology<-morphology[-16]
-morphology<-do.call(cbind,morphology)
-factors<-data_skinks[,c(1:7)]
+names<-lapply(morphology,names)
+names<-lapply(names,as.numeric)
+morphology<-mapply(function(x,y) cbind(x,y),x=morphology,y=names)
+morphology<-Reduce(function(x,y) merge(x,y,by="y",all=T),morphology)
+colnames(morphology)<-c("id",names(data_skinks[,c(8:22,24:28)]))
+morphology<-morphology[,-1]
+factors<-data_skinks[c(1:7)]
 morphology<-merge(factors,morphology,by="row.names",all=T)
 morphology<-morphology[,-1]
-rosner_test<-lapply(morphology[,8:27],function(x) rosnerTest(x,k=10))
-outliers<-lapply(rosner_test, "[[","all.stats")
-outliers<-lapply(outliers,"[",c(5,8))
-outliers<-lapply(outliers,function(x) x[x$Outlier=="TRUE",])
-outliers<-lapply(outliers,"[",c(1))
-names<-names(outliers)
-outliers<-do.call(rbind,outliers)
-id<-lapply(outliers$Obs.Num,function(x) morphology[x,])
-id<-lapply(id, "[",1)
-outliers<-cbind(outliers,do.call(rbind,id))
-outliers$variable<-row.names(outliers)
-outliers$variable<-gsub("\\.","",outliers$variable)
-outliers$variable<-gsub("[[:digit:]]+","",outliers$variable)
-row_number<-do.call(rbind,lapply(outliers$id,function(x) which(grepl(x,data_skinks$id))))
-outliers<-cbind(outliers,row_number)
-# (data_skinks$front_toe[93]<-NA) not included because does not seem an error
-# (data_skinks$hind_foot[59]<-NA) not included because does not seem an error
-data_skinks$lhl[59]<-NA
-data_skinks$lhl[26]<-NA
-data_skinks$pelvis_height[59]<-NA
-data_skinks$pelvis_width[32]<-NA
-data_skinks$body_width[97]<-NA
-data_skinks$body_width[32]<-NA
-data_skinks$body_length[53]<-NA
-data_skinks$body_length[36]<-NA
-data_skinks$body_length[40]<-NA
-# (data_skinks$body_length[50]<-NA) not included because does not seem an error
+rosner_test<-lapply(morphology[,8:27],function(x) tapply(x,morphology$snakes,function(y) rosnerTest(y,k=10)))
+# Removing outliers from morphology
+morphology$front_toe[97]<-NA
+morphology$hind_foot[c(58,97)]<-NA
+morphology$lhl[c(22,58)]<-NA
+morphology$pelvis_height[c(58)]<-NA
+morphology$pelvis_width[c(29)]<-NA
+morphology$body_width[c(29,100)]<-NA
+morphology$body_length[c(52,33,38)]<-NA # 49 not included
+# Removing outliers from data
+data_skinks$front_toe[94]<-NA
+data_skinks$hind_foot[c(59,94)]<-NA
+data_skinks$lhl[c(26,59)]<-NA
+data_skinks$pelvis_height[c(59)]<-NA
+data_skinks$pelvis_width[c(32)]<-NA
+data_skinks$body_width[c(32,97)]<-NA
+data_skinks$body_length[c(53,36,40)]<-NA # 50 not included
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
 
 ```{r}
 library(emmeans)
 library(effects)
-# MANCOVA of morphological measures with interaction
-mancova<-lm(cbind(log10(head_length),log10(head_width),log10(head_height),log10(front_toe),log10(front_foot),log10(lfl),log10(ufl),log10(hind_toe),log10(hind_foot),log10(lhl),log10(uhl),log10(pelvis_height),log10(pelvis_width),log10(tail_width),log10(body_width),log10(body_length))~log10(svl)+sex*snakes,data=data_skinks)
-qqnorm(residuals(mancova)) # checking normality assumption
-names<-names(data_skinks[,c(8:22,27)])
-mapply(function(x,y) plot(data_skinks$svl,x,col=data_skinks$snakes,xlab="svl",ylab = y),x=data_skinks[,c(8:22,27)],y=names) # checking linearity assumption
-lapply(data_skinks[,c(8:22,27)],function(x) vif(lm(log10(x)~log10(svl)+snakes+sex,data=data_skinks))) # checking multicollinearity
-plot(fitted(mancova),residuals(mancova)) # checking homocedasticity
-lapply(data_skinks[,c(8:22,27)],function(x) boxplot(x~sex*snakes,data=data_skinks))
-anova_test(data_skinks,log10(head_length)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(head_width)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(head_height)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(front_toe)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(front_foot)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(lfl)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(ufl)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(hind_foot)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(hind_toe)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(lhl)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(uhl)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(pelvis_height)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(pelvis_width)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(tail_width)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(body_width)~log10(svl)*sex*snakes,type=2)
-anova_test(data_skinks,log10(body_length)~log10(svl)*sex*snakes,type=2)
-## Checking with GLMs
-models<-lapply(data_skinks[,c(8:22,27)],function(x) glm(log10(x)~log10(svl)+sex*snakes,data=data_skinks))
-lapply(models,plot)
-lapply(models,Anova)
-lapply(models,function(x) pairs(emmeans(x,~snakes)))
-lapply(models[c(4,7)],function(x) pairs(emmeans(x,~snakes|sex)))
-tapply(data_skinks[data_skinks$sex=="FEM",]$front_toe,data_skinks[data_skinks$sex=="FEM",]$snakes,function(x) mean(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="FEM",]$front_toe,data_skinks[data_skinks$sex=="FEM",]$snakes,function(x) sd(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="MAL",]$front_toe,data_skinks[data_skinks$sex=="MAL",]$snakes,function(x) mean(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="MAL",]$front_toe,data_skinks[data_skinks$sex=="MAL",]$snakes,function(x) sd(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="FEM",]$ufl,data_skinks[data_skinks$sex=="FEM",]$snakes,function(x) mean(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="FEM",]$ufl,data_skinks[data_skinks$sex=="FEM",]$snakes,function(x) sd(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="MAL",]$ufl,data_skinks[data_skinks$sex=="MAL",]$snakes,function(x) mean(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="MAL",]$ufl,data_skinks[data_skinks$sex=="MAL",]$snakes,function(x) sd(x,na.rm=T))
-## Results
-summary(mancova)
-pairs(emmeans(mancova,~snakes))
-Anova(mancova,type=2)
-lapply(data_skinks[,c(8:22,27)],function(x) tapply(x,data_skinks$snakes,function(y) mean(y,na.rm=T)))
+library(glmmTMB)
 
-# Chi square of the number of individuals with tail broken
-data_skinks_tail<-data_skinks[data_skinks$tail=="YES"|data_skinks$tail=="NO",]
-attach(data_skinks_tail)
-table(tail,snakes)
-chisq.test(table(tail,snakes))
-with(data_skinks[data_skinks$sex=="FEM",],chisq.test(table(tail,snakes)))
-with(data_skinks[data_skinks$sex=="MAL",],chisq.test(table(tail,snakes)))
+lapply(data_skinks[,c(8:22,27)],function(x) plotmeans(x~sex,data=data_skinks))
+lapply(data_skinks[,c(8:22,27)],function(x) plotmeans(x~site,data=data_skinks))
+lapply(data_skinks[,c(8:22,27)],function(x) plotmeans(x~snakes,data=data_skinks))
+
+models<-lapply(data_skinks[,c(8:22,27)],function(x) glmmTMB(log10(x)~log10(svl)+sex*snakes+(1|site),data=data_skinks))
+lapply(models,function(x) plot(simulateResiduals(x,n=1000)))
+lapply(models,function(x) Anova(x,type=2))
+lapply(models[c(4,7)],function(x) pairs(emmeans(x,~snakes|sex)))
+lapply(models[c(4,7)],function(x) pairs(emmeans(x,~sex|snakes)))
+
+results_skinks<-lapply(models,function(x) Anova(x,type=2))
+results_skinks<-do.call(rbind,results_skinks)
+write.csv(results_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table 1/results_skinks.csv")
+
+aggregate(data_skinks[,c(8:22,27)],by=list(data_skinks$snakes),function(x) mean(x,na.rm=T))
+aggregate(data_skinks$ufl,by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
+aggregate(data_skinks$front_toe,by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
+
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
 
 ### **Building morphological data for Veusz**
 
 ```{r figure morphology}
-right_inv_geckos<-data_geckos[data_geckos$snakes=="YES",18]
-right_notinv_geckos<-data_geckos[data_geckos$snakes=="NO",18]
-left_inv_geckos<-data_geckos[data_geckos$snakes=="YES",19]
-left_notinv_geckos<-data_geckos[data_geckos$snakes=="NO",19]
-skinks_inv<-data_skinks[data_skinks$snakes=="YES",c(9,11,13:15,17:19)]
-skinks_notinv<-data_skinks[data_skinks$snakes=="NO",c(9,11,13:15,17:19)]
-right_inv_geckos<-as.vector(right_inv_geckos[[1]])
-left_inv_geckos<-as.vector(left_inv_geckos[[1]])
-right_notinv_geckos<-as.vector(right_notinv_geckos[[1]])
-left_notinv_geckos<-as.vector(left_notinv_geckos[[1]])
-n<-max(length(left_inv_geckos),length(right_inv_geckos),length(left_notinv_geckos),length(right_notinv_geckos))
-length(left_inv_geckos)<-n
-length(right_inv_geckos)<-n
-length(left_notinv_geckos)<-n
-length(right_notinv_geckos)<-n
-geckos<-cbind(left_inv_geckos,right_inv_geckos,left_notinv_geckos,right_notinv_geckos)
-write.csv(geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/geckos.csv")
-write.csv(skinks_inv,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks_inv.csv")
-write.csv(skinks_notinv,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks_notinv.csv")
+geckos_mean<-aggregate(data_geckos$lhl,by=list(data_geckos$snakes,data_geckos$sex),function(x) mean(x,na.rm=T))
+aggregate(data_geckos$lamella,by=list(data_geckos$snakes,data_geckos$sex),function(x) mean(x,na.rm=T))
+aggregate(data_geckos$lamella,by=list(data_geckos$snakes,data_geckos$sex),function(x) sd(x,na.rm=T))
+geckos_sd<-aggregate(data_geckos$lhl,by=list(data_geckos$snakes,data_geckos$sex),function(x) sd(x,na.rm=T))
+geckos<-cbind(geckos_mean,geckos_sd)
+skinks_mean_sex<-aggregate(data_skinks[,c(11,14)],by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
+skinks_sd_sex<-aggregate(data_skinks[,c(11,14)],by=list(data_skinks$snakes,data_skinks$sex),function(x) sd(x,na.rm=T))
+skinks_sex<-cbind(skinks_mean_sex,skinks_sd_sex)
+skinks_mean<-aggregate(data_skinks[,c(14,15,17,18)],by=list(data_skinks$snakes),function(x) mean(x,na.rm=T))
+skinks_sd<-aggregate(data_skinks[,c(14,15,17,18)],by=list(data_skinks$snakes),function(x) sd(x,na.rm=T))
+skinks<-cbind(skinks_mean,skinks_sd)
+write.csv(geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/geckos_mean.csv")
+write.csv(skinks_sex,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks_sex.csv")
+write.csv(skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks.csv")
 ```
 
 
@@ -561,95 +433,67 @@ write.csv(skinks_notinv,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Commun
 
 #### **Geckos**
 
-```{r body condition: creation (geckos)}
-residuals<-lm(log10(weight)~log10(svl),data=data_geckos)
-bodycond<-residuals$residuals
-data_geckos<-merge(data_geckos,bodycond,by="row.names",all = T)
-colnames(data_geckos)[31]<-"bodycond"
-data_geckos<-data_geckos[,-1]
-rosnerTest(data_geckos$bodycond,k=10) # checking for outliers
-```
-
-```{r body condition: analysis (geckos)}
+```{r body condition: geckos}
 library(onewaytests)
+library(glmmTMB)
+library(gplots)
+library(dplyr)
 
-# All individuals
-homog.test(bodycond~snakes,data=data_geckos,method="Levene")
-nor.test(bodycond~snakes,data=data_geckos,method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_geckos,paired=FALSE)
-# Females
-homog.test(bodycond~snakes,data=data_geckos[data_geckos$sex=="FEM",],method="Levene")
-nor.test(bodycond~snakes,data=data_geckos[data_geckos$sex=="FEM",],method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_geckos[data_geckos$sex=="FEM",],paired=FALSE)
-# Males
-homog.test(bodycond~snakes,data=data_geckos[data_geckos$sex=="MAL",],method="Levene")
-nor.test(bodycond~snakes,data=data_geckos[data_geckos$sex=="MAL",],method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_geckos[data_geckos$sex=="MAL",],paired=FALSE)
-lapply(split(data_geckos,data_geckos$sex),function(x) tapply(x$bodycond,x$snakes,function(y) mean(y,na.rm=T)))
-lapply(split(data_geckos,data_geckos$sex),function(x) tapply(x$bodycond,x$snakes,function(y) sd(y,na.rm=T)))
+bsma_geckos<-lm(log10(weight)~log10(svl),data=data_geckos)
+bsma_geckos<-bsma_geckos$coefficients[2]/cor.test(log10(data_geckos$weight),log10(data_geckos$svl),method="pearson")$estimate
+data_geckos$scaled_mass<-log10(data_geckos$weight)*(mean(log10(data_geckos$svl),na.rm=T)/log10(data_geckos$svl))^bsma_geckos
+tapply(data_geckos$scaled_mass,data_geckos$snakes,function(x) rosnerTest(x,k=10))
+data_geckos$scaled_mass[c(146,207,239)]<-NA
+homog.test(scaled_mass~sex,data=data_geckos,method="Levene")
+welch.test(scaled_mass~sex,rate=0.1,data=data_geckos)
+plotmeans(scaled_mass~sex,data=data_geckos)
+model_bodycond<-glmmTMB(scaled_mass~snakes*sex+(1|site),data=data_geckos,dispformula =  ~site+sex)
+plot(simulateResiduals(model_bodycond,n=1000))
+Anova(model_bodycond,type=2)
+pairs(emmeans(model_bodycond,~snakes|sex))
 ```
+
 
 #### **Lizards**
 
-```{r body condition: creation (lizards)}
-residuals<-lm(log10(weight)~log10(svl),data=data_lizards)
-bodycond<-residuals$residuals
-data_lizards<-merge(data_lizards,bodycond,by="row.names",all = T)
-colnames(data_lizards)[35]<-"bodycond"
-data_lizards<-data_lizards[,-1]
-rosnerTest(data_lizards$bodycond,k=10) # checking for outliers
-data_lizards$bodycond[76]<-NA
-```
-
-```{r body condition: analysis (lizards)}
+```{r body condition: lizards}
 library(onewaytests)
-
-# All individuals
-homog.test(bodycond~snakes,data=data_lizards,method="Levene")
-nor.test(bodycond~snakes,data=data_lizards,method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_lizards,paired=FALSE)
-# Females
-homog.test(bodycond~snakes,data=data_lizards[data_lizards$sex=="FEM",],method="Levene")
-nor.test(bodycond~snakes,data=data_lizards[data_lizards$sex=="FEM",],method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_lizards[data_lizards$sex=="FEM",],paired=FALSE)
-# Males
-homog.test(bodycond~snakes,data=data_lizards[data_lizards$sex=="MAL",],method="Levene")
-nor.test(bodycond~snakes,data=data_lizards[data_lizards$sex=="MAL",],method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_lizards[data_lizards$sex=="MAL",],paired=FALSE)
+library(glmmTMB)
+library(gplots)
+bsma_lizards<-lm(log10(weight)~log10(svl),data=data_lizards)
+bsma_lizards<-bsma_lizards$coefficients[2]/cor.test(log10(data_lizards$weight),log10(data_lizards$svl),method="pearson")$estimate
+data_lizards$scaled_mass<-log10(data_lizards$weight)*(mean(log10(data_lizards$svl),na.rm=T)/log10(data_lizards$svl))^bsma_lizards
+tapply(data_lizards$scaled_mass,data_lizards$snakes,function(x) rosnerTest(x,k=10))
+data_lizards$scaled_mass[c(38)]<-NA
+homog.test(scaled_mass~sex,data=data_lizards,method="Levene")
+welch.test(scaled_mass~sex,rate=0.1,data=data_lizards)
+plotmeans(scaled_mass~sex,data=data_lizards)
+model_bodycond<-glmmTMB(scaled_mass~snakes*sex+(1|site),data=data_lizards,dispformula =  ~site+sex)
+plot(simulateResiduals(model_bodycond,n=1000))
+Anova(model_bodycond,type=2)
+pairs(emmeans(model_bodycond,~snakes|sex))
+pairs(emmeans(model_bodycond,~sex|snakes))
 ```
 
 #### **Skinks**
 
 ```{r body condition: creation (skinks)}
-residuals<-lm(log10(weight)~log10(svl),data=data_skinks)
-bodycond<-residuals$residuals
-data_skinks<-merge(data_skinks,bodycond,by="row.names",all = T)
-colnames(data_skinks)[43]<-"bodycond"
-data_skinks<-data_skinks[,-1]
-rosnerTest(data_skinks$bodycond,k=10)
-```
-
-```{r body condition: analysis (skinks)}
 library(onewaytests)
-# All individuals
-homog.test(bodycond~snakes,data=data_skinks,method="Levene")
-nor.test(bodycond~snakes,data=data_skinks,method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_skinks,paired=FALSE)
-# Females
-homog.test(bodycond~snakes,data=data_skinks[data_skinks$sex=="FEM",],method="Levene")
-nor.test(bodycond~snakes,data=data_skinks[data_skinks$sex=="FEM",],method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_skinks[data_skinks$sex=="FEM",],paired=FALSE)
-tapply(data_skinks[data_skinks$sex=="FEM",]$bodycond,data_skinks[data_skinks$sex=="FEM",]$snakes,function(x) mean(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="FEM",]$bodycond,data_skinks[data_skinks$sex=="FEM",]$snakes,function(x) sd(x,na.rm=T))
-# Males
-homog.test(bodycond~snakes,data=data_skinks[data_skinks$sex=="MAL",],method="Levene")
-nor.test(bodycond~snakes,data=data_skinks[data_skinks$sex=="MAL",],method="LT",plot="qqplot")
-wilcox.test(bodycond~snakes,data=data_skinks[data_skinks$sex=="MAL",],paired=FALSE)
-tapply(data_skinks[data_skinks$sex=="MAL",]$bodycond,data_skinks[data_skinks$sex=="MAL",]$snakes,function(x) mean(x,na.rm=T))
-tapply(data_skinks[data_skinks$sex=="MAL",]$bodycond,data_skinks[data_skinks$sex=="MAL",]$snakes,function(x) sd(x,na.rm=T))
-rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
+library(glmmTMB)
+library(gplots)
+bsma_skinks<-lm(log10(weight)~log10(svl),data=data_skinks)
+bsma_skinks<-bsma_skinks$coefficients[2]/cor.test(log10(data_skinks$weight),log10(data_skinks$svl),method="pearson")$estimate
+data_skinks$scaled_mass<-log10(data_skinks$weight)*(mean(log10(data_skinks$svl),na.rm=T)/log10(data_skinks$svl))^bsma_skinks
+tapply(data_skinks$scaled_mass,data_skinks$snakes,function(x) rosnerTest(x,k=10))
+homog.test(scaled_mass~sex,data=data_skinks,method="Levene")
+welch.test(scaled_mass~sex,rate=0.1,data=data_skinks)
+plotmeans(scaled_mass~sex,data=data_skinks)
+model_bodycond<-glmmTMB(scaled_mass~snakes*sex+(1|site),data=data_skinks,dispformula =  ~site+sex)
+plot(simulateResiduals(model_bodycond,n=1000))
+Anova(model_bodycond,type=2)
+pairs(emmeans(model_bodycond,~snakes|sex))
+pairs(emmeans(model_bodycond,~sex|snakes))
 ```
-
 
 ### **Parasites**
 
@@ -657,7 +501,8 @@ rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 
 ```{r mites: prevalence}
 library(DHARMa)
-glm_prevalence<-glm(mites_prev~sex*snakes,data=data_geckos,family=binomial(link="logit"))
+library(glmmTMB)
+glm_prevalence<-glmmTMB(mites_prev~sex*snakes+(1|site),data=data_geckos,family=binomial(link="logit"),dispformula = ~site)
 plotResiduals(simulateResiduals(glm_prevalence,n=1000))
 testResiduals(simulateResiduals(glm_prevalence,n=1000))
 Anova(glm_prevalence,type=2)
@@ -669,13 +514,14 @@ table
 ```{r mites: intensity}
 library(DHARMa)
 rosnerTest(data_geckos$mites,k=10)
-
-glm_abundance<-glm.nb(mites~sex*snakes,data=data_geckos)
+lapply(list(glmmTMB(mites~sex*snakes+(1|site),data=data_geckos,family=poisson(link="log"),dispformula = ~site),glmmTMB(mites~sex*snakes+(1|site),data=data_geckos,family=nbinom2(link="log"),dispformula = ~site)),AIC)
+glm_abundance<-glmmTMB(mites~sex*snakes+(1|site),data=data_geckos,family=nbinom2(link="log"),dispformula = ~site)
 plotResiduals(simulateResiduals(glm_abundance,n=1000))
 testResiduals(simulateResiduals(glm_abundance,n=1000))
 testZeroInflation(simulateResiduals(glm_abundance,n=1000))
 Anova(glm_abundance,type=2)
 pairs(emmeans(glm_abundance,~snakes|sex))
+pairs(emmeans(glm_abundance,~sex|snakes))
 tapply(data_geckos[data_geckos$sex=="FEM",]$mites,data_geckos[data_geckos$sex=="FEM",]$snakes,function(x) mean(x,na.rm=T))
 tapply(data_geckos[data_geckos$sex=="FEM",]$mites,data_geckos[data_geckos$sex=="FEM",]$snakes,function(x) sd(x,na.rm=T))
 tapply(data_geckos[data_geckos$sex=="MAL",]$mites,data_geckos[data_geckos$sex=="MAL",]$snakes,function(x) mean(x,na.rm=T))
@@ -686,228 +532,76 @@ tapply(data_geckos[data_geckos$sex=="MAL",]$mites,data_geckos[data_geckos$sex=="
 
 ```{r mites: prevalence}
 library(DHARMa)
-glm_prevalence<-glm(mites_prev~sex*snakes,data=data_lizards,family=binomial(link="logit"))
+library(glmmTMB)
+glm_prevalence<-glmmTMB(mites_prev~sex*snakes+(1|site),data=data_lizards,family=binomial(link="logit"),dispformula = ~site)
 plotResiduals(simulateResiduals(glm_prevalence,n=1000))
 testResiduals(simulateResiduals(glm_prevalence,n=1000))
 Anova(glm_prevalence,type=2)
+table<-table(data_lizards$mites_prev,data_lizards$snakes)
+table<-table/matrix(c(sum(table[,1]),sum(table[,1]),sum(table[,2]),sum(table[,2])),nrow=2,ncol=2)*100
+table
 ```
 
 ```{r mites: intensity}
 library(DHARMa)
 rosnerTest(data_lizards$mites,k=10)
-
-glm_abundance<-glm.nb(mites~sex*snakes,data=data_lizards)
+lapply(list(glmmTMB(mites~sex*snakes+(1|site),data=data_lizards,family=poisson(link="log"),dispformula = ~site),glmmTMB(mites~sex*snakes+(1|site),data=data_lizards,family=nbinom2(link="log"),dispformula = ~site)),AIC)
+glm_abundance<-glmmTMB(mites~sex*snakes+(1|site),data=data_lizards,family=nbinom2(link="log"),dispformula = ~site)
 plotResiduals(simulateResiduals(glm_abundance,n=1000))
 testResiduals(simulateResiduals(glm_abundance,n=1000))
 testZeroInflation(simulateResiduals(glm_abundance,n=1000))
 Anova(glm_abundance,type=2)
-tapply(data_lizards$mites,data_lizards$snakes,function(x) mean(x,na.rm=T))
-tapply(data_lizards$mites,data_lizards$snakes,function(x) sd(x,na.rm=T))
+tapply(data_lizards$mites,data_lizards$snakes,mean)
+tapply(data_lizards$mites,data_lizards$snakes,sd)
 ```
 
 #### **Building the body condition and parasite data for Veusz**
 
 ```{r body condition and morphological data Veusz}
-bodycond_inv_geckos_fem<-as.vector(data_geckos[data_geckos$snakes=="YES" & data_geckos$sex=="FEM",30])
-bodycond_inv_geckos_mal<-as.vector(data_geckos[data_geckos$snakes=="YES" & data_geckos$sex=="MAL",30])
-bodycond_notinv_geckos_fem<-as.vector(data_geckos[data_geckos$snakes=="NO" & data_geckos$sex=="FEM",30])
-bodycond_notinv_geckos_mal<-as.vector(data_geckos[data_geckos$snakes=="NO" & data_geckos$sex=="MAL",30])
-mites_inv_geckos_fem<-as.vector(data_geckos[data_geckos$snakes=="YES" & data_geckos$sex=="FEM",28])
-mites_inv_geckos_mal<-as.vector(data_geckos[data_geckos$snakes=="YES" & data_geckos$sex=="MAL",28])
-mites_notinv_geckos_fem<-as.vector(data_geckos[data_geckos$snakes=="NO" & data_geckos$sex=="FEM",28])
-mites_notinv_geckos_mal<-as.vector(data_geckos[data_geckos$snakes=="NO" & data_geckos$sex=="MAL",28])
-bodycond_inv_lizards_fem<-as.vector(data_lizards[data_lizards$snakes=="YES" & data_lizards$sex=="FEM",34])
-bodycond_inv_lizards_mal<-as.vector(data_lizards[data_lizards$snakes=="YES" & data_lizards$sex=="MAL",34])
-bodycond_notinv_lizards_fem<-as.vector(data_lizards[data_lizards$snakes=="NO" & data_lizards$sex=="FEM",34])
-bodycond_notinv_lizards_mal<-as.vector(data_lizards[data_lizards$snakes=="NO" & data_lizards$sex=="MAL",34])
-mites_inv_lizards_fem<-as.vector(data_lizards[data_lizards$snakes=="YES" & data_lizards$sex=="FEM",28])
-mites_inv_lizards_mal<-as.vector(data_lizards[data_lizards$snakes=="YES" & data_lizards$sex=="MAL",28])
-mites_notinv_lizards_fem<-as.vector(data_lizards[data_lizards$snakes=="NO" & data_lizards$sex=="FEM",28])
-mites_notinv_lizards_mal<-as.vector(data_lizards[data_lizards$snakes=="NO" & data_lizards$sex=="MAL",28])
-bodycond_inv_skinks_fem<-as.vector(data_skinks[data_skinks$snakes=="YES" & data_skinks$sex=="FEM",42])
-bodycond_inv_skinks_mal<-as.vector(data_skinks[data_skinks$snakes=="YES" & data_skinks$sex=="MAL",42])
-bodycond_notinv_skinks_fem<-as.vector(data_skinks[data_skinks$snakes=="NO" & data_skinks$sex=="FEM",42])
-bodycond_notinv_skinks_mal<-as.vector(data_skinks[data_skinks$snakes=="NO" & data_skinks$sex=="MAL",42])
-n<-max(length(bodycond_inv_geckos_fem),length(bodycond_notinv_geckos_fem),length(mites_inv_geckos_fem),length(mites_notinv_geckos_fem),length(bodycond_inv_lizards_fem),length(bodycond_notinv_lizards_fem),length(mites_inv_lizards_fem),length(mites_notinv_lizards_fem),length(bodycond_inv_skinks_fem),length(bodycond_notinv_skinks_fem),length(bodycond_inv_geckos_mal),length(bodycond_notinv_geckos_mal),length(mites_inv_geckos_mal),length(mites_notinv_geckos_mal),length(bodycond_inv_lizards_mal),length(bodycond_notinv_lizards_mal),length(mites_inv_lizards_mal),length(mites_notinv_lizards_mal),length(bodycond_inv_skinks_mal),length(bodycond_notinv_skinks_mal))
-length(bodycond_inv_geckos_fem)<-n
-length(bodycond_notinv_geckos_fem)<-n
-length(mites_inv_geckos_fem)<-n
-length(mites_notinv_geckos_fem)<-n
-length(bodycond_inv_lizards_fem)<-n
-length(bodycond_notinv_lizards_fem)<-n
-length(mites_inv_lizards_fem)<-n
-length(mites_notinv_lizards_fem)<-n
-length(bodycond_inv_skinks_fem)<-n
-length(bodycond_notinv_skinks_fem)<-n
-length(bodycond_inv_geckos_mal)<-n
-length(bodycond_notinv_geckos_mal)<-n
-length(mites_inv_geckos_mal)<-n
-length(mites_notinv_geckos_mal)<-n
-length(bodycond_inv_lizards_mal)<-n
-length(bodycond_notinv_lizards_mal)<-n
-length(mites_inv_lizards_mal)<-n
-length(mites_notinv_lizards_mal)<-n
-length(bodycond_inv_skinks_mal)<-n
-length(bodycond_notinv_skinks_mal)<-n
-data_bodycond<-cbind((bodycond_inv_geckos_fem),(bodycond_notinv_geckos_fem),(mites_inv_geckos_fem),(mites_notinv_geckos_fem),(bodycond_inv_lizards_fem),(bodycond_notinv_lizards_fem),(mites_inv_lizards_fem),(mites_notinv_lizards_fem),(bodycond_inv_skinks_fem),(bodycond_notinv_skinks_fem),(bodycond_inv_geckos_mal),(bodycond_notinv_geckos_mal),(mites_inv_geckos_mal),(mites_notinv_geckos_mal),(bodycond_inv_lizards_mal),(bodycond_notinv_lizards_mal),(mites_inv_lizards_mal),(mites_notinv_lizards_mal),(bodycond_inv_skinks_mal),(bodycond_notinv_skinks_mal))
-colnames(data_bodycond)<-c("bodycond_inv_geckos_fem","bodycond_notinv_geckos_fem","mites_inv_geckos_fem","mites_notinv_geckos_fem","bodycond_inv_lizards_fem","bodycond_notinv_lizards_fem","mites_inv_lizards_fem","mites_notinv_lizards_fem","bodycond_inv_skinks_fem","bodycond_notinv_skinks_fem","bodycond_inv_geckos_mal","bodycond_notinv_geckos_mal","mites_inv_geckos_mal","mites_notinv_geckos_mal","bodycond_inv_lizards_mal","bodycond_notinv_lizards_mal","mites_inv_lizards_mal","mites_notinv_lizards_mal","bodycond_inv_skinks_mal","bodycond_notinv_skinks_mal")
-write.csv(data_bodycond,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/bodycond.csv")
-rm(list=setdiff(ls(),c("data_geckos","data_skinks","data_lizards","folder")))
-```
-
-
-## **Data extraction**
-
-```{r data extraction}
-write.csv(data_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/data_geckos.csv",sep=",",row.names = T)
-write.csv(data_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/data_lizards.csv",sep=",",row.names = T)
-write.csv(data_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/data_skinks.csv",sep=",",row.names = T)
+lizards_mean<-aggregate(data_lizards[,c(34)],by=list(data_lizards$snakes,data_lizards$sex),function(x) mean(x,na.rm=T))
+lizards_sd<-aggregate(data_lizards[,c(34)],by=list(data_lizards$snakes,data_lizards$sex),function(x) sd(x,na.rm=T))
+lizards_bodycond<-cbind(lizards_mean,lizards_sd)
+lizards_mean<-aggregate(data_lizards[,c(28)],by=list(data_lizards$snakes,data_lizards$sex),function(x) mean(x,na.rm=T))
+lizards_sd<-aggregate(data_lizards[,c(28)],by=list(data_lizards$snakes,data_lizards$sex),function(x) sd(x,na.rm=T))
+lizards_mites<-cbind(lizards_mean,lizards_sd)
+geckos_mean<-aggregate(data_geckos[,c(28,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) mean(x,na.rm=T))
+geckos_sd<-aggregate(data_geckos[,c(28,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) sd(x,na.rm=T))
+geckos<-cbind(geckos_mean,geckos_sd)
+skinks_mean<-aggregate(data_skinks$scaled_mass,by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
+skinks_sd<-aggregate(data_skinks$scaled_mass,by=list(data_skinks$snakes,data_skinks$sex),function(x) sd(x,na.rm=T))
+skinks<-cbind(skinks_mean,skinks_sd)
+write.csv(lizards_bodycond,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/lizards_bodycond.csv")
+write.csv(lizards_mites,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/lizards_mites.csv")
+write.csv(geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/geckos.csv")
+write.csv(skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/skinks.csv")
 ```
 
 ## **Data for Table S1**
 
-```{r Table 2}
-geckos_inv_fem<-data_geckos[data_geckos$snakes=="YES" & data_geckos$sex=="FEM",]
-geckos_noinv_fem<-data_geckos[data_geckos$snakes=="NO" & data_geckos$sex=="FEM",]
-lizards_inv_fem<-data_lizards[data_lizards$snakes=="YES" & data_lizards$sex=="FEM",]
-lizards_noinv_fem<-data_lizards[data_lizards$snakes=="NO" & data_lizards$sex=="FEM",]
-skinks_inv_fem<-data_skinks[data_skinks$snakes=="YES" & data_skinks$sex=="FEM",]
-skinks_noinv_fem<-data_skinks[data_skinks$snakes=="NO" & data_skinks$sex=="FEM",]
-
-geckos_inv_mal<-data_geckos[data_geckos$snakes=="YES" & data_geckos$sex=="MAL",]
-geckos_noinv_mal<-data_geckos[data_geckos$snakes=="NO" & data_geckos$sex=="MAL",]
-lizards_inv_mal<-data_lizards[data_lizards$snakes=="YES" & data_lizards$sex=="MAL",]
-lizards_noinv_mal<-data_lizards[data_lizards$snakes=="NO" & data_lizards$sex=="MAL",]
-skinks_inv_mal<-data_skinks[data_skinks$snakes=="YES" & data_skinks$sex=="MAL",]
-skinks_noinv_mal<-data_skinks[data_skinks$snakes=="NO" & data_skinks$sex=="MAL",]
-
-# Geckos
-## Females
-geckos_inv_fem_avg<-lapply(geckos_inv_fem[,c(8:15,18,19,28,30)],function(x) mean(x,na.rm=T))
-geckos_inv_fem_avg<-do.call(rbind,geckos_inv_fem_avg)
-colnames(geckos_inv_fem_avg)<-"geckos_inv_fem_avg"
-geckos_inv_fem_sd<-lapply(geckos_inv_fem[,c(8:15,18,19,28,30)],function(x) sd(x,na.rm=T))
-geckos_inv_fem_sd<-do.call(rbind,geckos_inv_fem_sd)
-colnames(geckos_inv_fem_sd)<-"geckos_inv_fem_sd"
-geckos_noinv_fem_avg<-lapply(geckos_noinv_fem[,c(8:15,18,19,28,30)],function(x) mean(x,na.rm=T))
-geckos_noinv_fem_avg<-do.call(rbind,geckos_noinv_fem_avg)
-colnames(geckos_noinv_fem_avg)<-"geckos_noinv_fem_avg"
-geckos_noinv_fem_sd<-lapply(geckos_noinv_fem[,c(8:15,18,19,28,30)],function(x) sd(x,na.rm=T))
-geckos_noinv_fem_sd<-do.call(rbind,geckos_noinv_fem_sd)
-colnames(geckos_noinv_fem_sd)<-"geckos_noinv_fem_sd"
-## Males
-geckos_inv_mal_avg<-lapply(geckos_inv_mal[,c(8:15,18,19,28,30)],function(x) mean(x,na.rm=T))
-geckos_inv_mal_avg<-do.call(rbind,geckos_inv_mal_avg)
-colnames(geckos_inv_mal_avg)<-"geckos_inv_mal_avg"
-geckos_inv_mal_sd<-lapply(geckos_inv_mal[,c(8:15,18,19,28,30)],function(x) sd(x,na.rm=T))
-geckos_inv_mal_sd<-do.call(rbind,geckos_inv_mal_sd)
-colnames(geckos_inv_mal_sd)<-"geckos_inv_mal_sd"
-geckos_noinv_mal_avg<-lapply(geckos_noinv_mal[,c(8:15,18,19,28,30)],function(x) mean(x,na.rm=T))
-geckos_noinv_mal_avg<-do.call(rbind,geckos_noinv_mal_avg)
-colnames(geckos_noinv_mal_avg)<-"geckos_noinv_mal_avg"
-geckos_noinv_mal_sd<-lapply(geckos_noinv_mal[,c(8:15,18,19,28,30)],function(x) sd(x,na.rm=T))
-geckos_noinv_mal_sd<-do.call(rbind,geckos_noinv_mal_sd)
-colnames(geckos_noinv_mal_sd)<-"geckos_noinv_mal_sd"
-#Row names geckos
-row_names_geckos<-as.vector(rownames(geckos_noinv_mal_sd))
-
-
-# Lizards
-## Females
-lizards_inv_fem_avg<-lapply(lizards_inv_fem[,c(8:16,28,34)],function(x) mean(x,na.rm=T))
-lizards_inv_fem_avg<-do.call(rbind,lizards_inv_fem_avg)
-colnames(lizards_inv_fem_avg)<-"lizards_inv_fem_avg"
-lizards_inv_fem_sd<-lapply(lizards_inv_fem[,c(8:16,28,34)],function(x) sd(x,na.rm=T))
-lizards_inv_fem_sd<-do.call(rbind,lizards_inv_fem_sd)
-colnames(lizards_inv_fem_sd)<-"lizards_inv_fem_sd"
-lizards_noinv_fem_avg<-lapply(lizards_noinv_fem[,c(8:16,28,34)],function(x) mean(x,na.rm=T))
-lizards_noinv_fem_avg<-do.call(rbind,lizards_noinv_fem_avg)
-colnames(lizards_noinv_fem_avg)<-"lizards_noinv_fem_avg"
-lizards_noinv_fem_sd<-lapply(lizards_noinv_fem[,c(8:16,28,34)],function(x) sd(x,na.rm=T))
-lizards_noinv_fem_sd<-do.call(rbind,lizards_noinv_fem_sd)
-colnames(lizards_noinv_fem_sd)<-"lizards_noinv_fem_sd"
-## Males
-lizards_inv_mal_avg<-lapply(lizards_inv_mal[,c(8:16,28,34)],function(x) mean(x,na.rm=T))
-lizards_inv_mal_avg<-do.call(rbind,lizards_inv_mal_avg)
-colnames(lizards_inv_mal_avg)<-"lizards_inv_mal_avg"
-lizards_inv_mal_sd<-lapply(lizards_inv_mal[,c(8:16,28,34)],function(x) sd(x,na.rm=T))
-lizards_inv_mal_sd<-do.call(rbind,lizards_inv_mal_sd)
-colnames(lizards_inv_mal_sd)<-"lizards_inv_mal_sd"
-lizards_noinv_mal_avg<-lapply(lizards_noinv_mal[,c(8:16,28,34)],function(x) mean(x,na.rm=T))
-lizards_noinv_mal_avg<-do.call(rbind,lizards_noinv_mal_avg)
-colnames(lizards_noinv_mal_avg)<-"lizards_noinv_mal_avg"
-lizards_noinv_mal_sd<-lapply(lizards_noinv_mal[,c(8:16,28,34)],function(x) sd(x,na.rm=T))
-lizards_noinv_mal_sd<-do.call(rbind,lizards_noinv_mal_sd)
-colnames(lizards_noinv_mal_sd)<-"lizards_noinv_mal_sd"
-#Row names lizards
-row_names_lizards<-as.vector(rownames(lizards_noinv_mal_sd))
-
-# Skinks
-## Females
-skinks_inv_fem_avg<-lapply(skinks_inv_fem[,c(8:23,27,39,42)],function(x) mean(x,na.rm=T))
-skinks_inv_fem_avg<-do.call(rbind,skinks_inv_fem_avg)
-colnames(skinks_inv_fem_avg)<-"skinks_inv_fem_avg"
-skinks_inv_fem_sd<-lapply(skinks_inv_fem[,c(8:23,27,39,42)],function(x) sd(x,na.rm=T))
-skinks_inv_fem_sd<-do.call(rbind,skinks_inv_fem_sd)
-colnames(skinks_inv_fem_sd)<-"skinks_inv_fem_sd"
-skinks_noinv_fem_avg<-lapply(skinks_noinv_fem[,c(8:23,27,39,42)],function(x) mean(x,na.rm=T))
-skinks_noinv_fem_avg<-do.call(rbind,skinks_noinv_fem_avg)
-colnames(skinks_noinv_fem_avg)<-"skinks_noinv_fem_avg"
-skinks_noinv_fem_sd<-lapply(skinks_noinv_fem[,c(8:23,27,39,42)],function(x) sd(x,na.rm=T))
-skinks_noinv_fem_sd<-do.call(rbind,skinks_noinv_fem_sd)
-colnames(skinks_noinv_fem_sd)<-"skinks_noinv_fem_sd"
-## Males
-skinks_inv_mal_avg<-lapply(skinks_inv_mal[,c(8:23,27,39,42)],function(x) mean(x,na.rm=T))
-skinks_inv_mal_avg<-do.call(rbind,skinks_inv_mal_avg)
-colnames(skinks_inv_mal_avg)<-"skinks_inv_mal_avg"
-skinks_inv_mal_sd<-lapply(skinks_inv_mal[,c(8:23,27,39,42)],function(x) sd(x,na.rm=T))
-skinks_inv_mal_sd<-do.call(rbind,skinks_inv_mal_sd)
-colnames(skinks_inv_mal_sd)<-"skinks_inv_mal_sd"
-skinks_noinv_mal_avg<-lapply(skinks_noinv_mal[,c(8:23,27,39,42)],function(x) mean(x,na.rm=T))
-skinks_noinv_mal_avg<-do.call(rbind,skinks_noinv_mal_avg)
-colnames(skinks_noinv_mal_avg)<-"skinks_noinv_mal_avg"
-skinks_noinv_mal_sd<-lapply(skinks_noinv_mal[,c(8:23,27,39,42)],function(x) sd(x,na.rm=T))
-skinks_noinv_mal_sd<-do.call(rbind,skinks_noinv_mal_sd)
-colnames(skinks_noinv_mal_sd)<-"skinks_noinv_mal_sd"
-#Row names skinks
-row_names_skinks<-as.vector(rownames(skinks_noinv_mal_sd))
-
-# Table S2
-list<-list(row_names_geckos,geckos_inv_fem_avg,geckos_inv_fem_sd,geckos_noinv_fem_avg,geckos_noinv_fem_sd,geckos_inv_mal_avg,geckos_inv_mal_sd,geckos_noinv_mal_avg,geckos_noinv_mal_sd,row_names_lizards,lizards_inv_fem_avg,lizards_inv_fem_sd,lizards_noinv_fem_avg,lizards_noinv_fem_sd,lizards_inv_mal_avg,lizards_inv_mal_sd,lizards_noinv_mal_avg,lizards_noinv_mal_sd,row_names_skinks,skinks_inv_fem_avg,skinks_inv_fem_sd,skinks_noinv_fem_avg,skinks_noinv_fem_sd,skinks_inv_mal_avg,skinks_inv_mal_sd,skinks_noinv_mal_avg,skinks_noinv_mal_sd)
-n<-lapply(list,function(x) length(x))
-n<-do.call(rbind,n)
-n<-max(n)
-length(row_names_geckos)<-n
-length(geckos_inv_fem_avg)<-n
-length(geckos_inv_fem_sd)<-n
-length(geckos_noinv_fem_avg)<-n
-length(geckos_noinv_fem_sd)<-n
-length(geckos_inv_mal_avg)<-n
-length(geckos_inv_mal_sd)<-n
-length(geckos_noinv_mal_avg)<-n
-length(geckos_noinv_mal_sd)<-n
-length(row_names_lizards)<-n
-length(lizards_inv_fem_avg)<-n
-length(lizards_inv_fem_sd)<-n
-length(lizards_noinv_fem_avg)<-n
-length(lizards_noinv_fem_sd)<-n
-length(lizards_inv_mal_avg)<-n
-length(lizards_inv_mal_sd)<-n
-length(lizards_noinv_mal_avg)<-n
-length(lizards_noinv_mal_sd)<-n
-length(row_names_skinks)<-n
-length(skinks_inv_fem_avg)<-n
-length(skinks_inv_fem_sd)<-n
-length(skinks_noinv_fem_avg)<-n
-length(skinks_noinv_fem_sd)<-n
-length(skinks_inv_mal_avg)<-n
-length(skinks_inv_mal_sd)<-n
-length(skinks_noinv_mal_avg)<-n
-length(skinks_noinv_mal_sd)<-n
-
-table_s2<-cbind(row_names_geckos,geckos_inv_fem_avg,geckos_inv_fem_sd,geckos_noinv_fem_avg,geckos_noinv_fem_sd,geckos_inv_mal_avg,geckos_inv_mal_sd,geckos_noinv_mal_avg,geckos_noinv_mal_sd,row_names_lizards,lizards_inv_fem_avg,lizards_inv_fem_sd,lizards_noinv_fem_avg,lizards_noinv_fem_sd,lizards_inv_mal_avg,lizards_inv_mal_sd,lizards_noinv_mal_avg,lizards_noinv_mal_sd,row_names_skinks,skinks_inv_fem_avg,skinks_inv_fem_sd,skinks_noinv_fem_avg,skinks_noinv_fem_sd,skinks_inv_mal_avg,skinks_inv_mal_sd,skinks_noinv_mal_avg,skinks_noinv_mal_sd)
-
-write.csv(table_s2,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/tables1.csv")
+```{r table s1}
+lizards_mean<-aggregate(data_lizards[,c(8:16,28,34)],by=list(data_lizards$snakes,data_lizards$sex),function(x) mean(x,na.rm=T))
+colnames(lizards_mean)[2:ncol(lizards_mean)]<-c(paste0(names(lizards_mean[2:ncol(lizards_mean)]),"_mean"))
+lizards_sd<-aggregate(data_lizards[,c(8:16,28,34)],by=list(data_lizards$snakes,data_lizards$sex),function(x) sd(x,na.rm=T))
+colnames(lizards_sd)[2:ncol(lizards_sd)]<-c(paste0(names(lizards_sd[2:ncol(lizards_sd)]),"_sd"))
+lizards_n<-aggregate(data_lizards[,c(8:16,28,34)],by=list(data_lizards$snakes,data_lizards$sex),function(x) length(complete.cases(x)))
+colnames(lizards_n)[2:ncol(lizards_n)]<-c(paste0(names(lizards_n[2:ncol(lizards_n)]),"_n"))
+lizards<-cbind(lizards_mean,lizards_sd[,3:ncol(lizards_sd)],lizards_n[,3:ncol(lizards_n)])
+skinks_mean<-aggregate(data_skinks[,c(8:23,27,42)],by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
+colnames(skinks_mean)[2:ncol(skinks_mean)]<-c(paste0(names(skinks_mean[2:ncol(skinks_mean)]),"_mean"))
+skinks_sd<-aggregate(data_skinks[,c(8:23,27,42)],by=list(data_skinks$snakes,data_skinks$sex),function(x) sd(x,na.rm=T))
+colnames(skinks_sd)[2:ncol(skinks_sd)]<-c(paste0(names(skinks_sd[2:ncol(skinks_sd)]),"_sd"))
+skinks_n<-aggregate(data_skinks[,c(8:23,27,42)],by=list(data_skinks$snakes,data_skinks$sex),function(x) length(complete.cases(x)))
+colnames(skinks_n)[2:ncol(skinks_n)]<-c(paste0(names(skinks_n[2:ncol(skinks_n)]),"_n"))
+skinks<-cbind(skinks_mean,skinks_sd[,3:ncol(skinks_sd)],skinks_n[,3:ncol(skinks_n)])
+geckos_mean<-aggregate(data_geckos[,c(8:15,28,30,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) mean(x,na.rm=T))
+colnames(geckos_mean)[2:ncol(geckos_mean)]<-c(paste0(names(geckos_mean[2:ncol(geckos_mean)]),"_mean"))
+geckos_sd<-aggregate(data_geckos[,c(8:15,28,30,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) sd(x,na.rm=T))
+colnames(geckos_sd)[2:ncol(geckos_sd)]<-c(paste0(names(geckos_sd[2:ncol(geckos_sd)]),"_sd"))
+geckos_n<-aggregate(data_geckos[,c(8:15,28,30,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) length(complete.cases(x)))
+colnames(geckos_n)[2:ncol(geckos_n)]<-c(paste0(names(geckos_n[2:ncol(geckos_n)]),"_n"))
+geckos<-cbind(geckos_mean,geckos_sd[,3:ncol(geckos_sd)],geckos_n[,3:ncol(geckos_n)])
+write.csv(lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/lizards.csv")
+write.csv(skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/skinks.csv")
+write.csv(geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/geckos.csv")
 ```
-
 
