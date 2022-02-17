@@ -57,6 +57,15 @@ data_skinks<-data_skinks[data_skinks$sex=="FEM"|data_skinks$sex=="MAL",]
 data_skinks[,c(1,3:7,41)]<-lapply(data_skinks[,c(1,3:7,41)],as.factor)
 ```
 
+## **Number of individuals**
+
+```{r number individuals}
+table(data_geckos$snakes)
+table(data_lizards$snakes)
+table(data_skinks$snakes)
+```
+
+
 ## **Analysis of morphology**
 
 ### **Analysis of SVL**
@@ -180,7 +189,7 @@ sd_lizards<-aggregate(data_lizards$svl,by=list(data_lizards$snakes,data_lizards$
 sd_skinks<-aggregate(data_skinks$svl,by=list(data_skinks$snakes,data_skinks$sex),function(x) sd(x,na.rm=T))
 fig_bodysize<-cbind(mean_geckos,sd_geckos[,3],mean_lizards[,3],sd_lizards[,3],mean_skinks[,3],sd_skinks[,3])
 colnames(fig_bodysize)<-c("snakes","sex","mean_geckos","sd_geckos","mean_lizards","sd_lizards","mean_skinks","sd_skinks")
-write.csv(fig_bodysize,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_bodysize/bodysize.csv")
+write.csv(fig_bodysize,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/bodysize.csv")
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
 
@@ -269,7 +278,6 @@ lapply(split(data_lamella,data_lamella$sex),function(x) kruskal.test(lamella~sna
 
 aggregate(data_lamella$lamella,by=list(data_lamella$snakes,data_lamella$sex),mean)
 aggregate(data_lamella$lamella,by=list(data_lamella$snakes,data_lamella$sex),sd)
-
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder","morphology")))
 ```
@@ -447,10 +455,11 @@ data_geckos$scaled_mass[c(146,207,239)]<-NA
 homog.test(scaled_mass~sex,data=data_geckos,method="Levene")
 welch.test(scaled_mass~sex,rate=0.1,data=data_geckos)
 plotmeans(scaled_mass~sex,data=data_geckos)
-model_bodycond<-glmmTMB(scaled_mass~snakes*sex+(1|site),data=data_geckos,dispformula =  ~site+sex)
+model_bodycond<-glmmTMB(scaled_mass~sex*snakes+(1|site),data=data_geckos,dispformula =  ~site+sex)
 plot(simulateResiduals(model_bodycond,n=1000))
 Anova(model_bodycond,type=2)
 pairs(emmeans(model_bodycond,~snakes|sex))
+pairs(emmeans(model_bodycond,~sex|snakes))
 ```
 
 
@@ -468,11 +477,12 @@ data_lizards$scaled_mass[c(38)]<-NA
 homog.test(scaled_mass~sex,data=data_lizards,method="Levene")
 welch.test(scaled_mass~sex,rate=0.1,data=data_lizards)
 plotmeans(scaled_mass~sex,data=data_lizards)
-model_bodycond<-glmmTMB(scaled_mass~snakes*sex+(1|site),data=data_lizards,dispformula =  ~site+sex)
+model_bodycond<-glmmTMB(scaled_mass~sex*snakes+(1|site),data=data_lizards,dispformula =  ~site+sex)
 plot(simulateResiduals(model_bodycond,n=1000))
 Anova(model_bodycond,type=2)
 pairs(emmeans(model_bodycond,~snakes|sex))
 pairs(emmeans(model_bodycond,~sex|snakes))
+tapply(data_lizards$scaled_mass,data_lizards$sex,function(x) mean(x,na.rm=T))
 ```
 
 #### **Skinks**
@@ -488,7 +498,7 @@ tapply(data_skinks$scaled_mass,data_skinks$snakes,function(x) rosnerTest(x,k=10)
 homog.test(scaled_mass~sex,data=data_skinks,method="Levene")
 welch.test(scaled_mass~sex,rate=0.1,data=data_skinks)
 plotmeans(scaled_mass~sex,data=data_skinks)
-model_bodycond<-glmmTMB(scaled_mass~snakes*sex+(1|site),data=data_skinks,dispformula =  ~site+sex)
+model_bodycond<-glmmTMB(scaled_mass~sex*snakes+(1|site),data=data_skinks,dispformula =  ~site+sex)
 plot(simulateResiduals(model_bodycond,n=1000))
 Anova(model_bodycond,type=2)
 pairs(emmeans(model_bodycond,~snakes|sex))
@@ -583,21 +593,21 @@ lizards_mean<-aggregate(data_lizards[,c(8:16,28,34)],by=list(data_lizards$snakes
 colnames(lizards_mean)[2:ncol(lizards_mean)]<-c(paste0(names(lizards_mean[2:ncol(lizards_mean)]),"_mean"))
 lizards_sd<-aggregate(data_lizards[,c(8:16,28,34)],by=list(data_lizards$snakes,data_lizards$sex),function(x) sd(x,na.rm=T))
 colnames(lizards_sd)[2:ncol(lizards_sd)]<-c(paste0(names(lizards_sd[2:ncol(lizards_sd)]),"_sd"))
-lizards_n<-aggregate(data_lizards[,c(8:16,28,34)],by=list(data_lizards$snakes,data_lizards$sex),function(x) length(complete.cases(x)))
+lizards_n<-aggregate(data_lizards[,c(8:16,28,34)],by=list(data_lizards$snakes,data_lizards$sex),function(x) length(x[complete.cases(x)]))
 colnames(lizards_n)[2:ncol(lizards_n)]<-c(paste0(names(lizards_n[2:ncol(lizards_n)]),"_n"))
 lizards<-cbind(lizards_mean,lizards_sd[,3:ncol(lizards_sd)],lizards_n[,3:ncol(lizards_n)])
 skinks_mean<-aggregate(data_skinks[,c(8:23,27,42)],by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
 colnames(skinks_mean)[2:ncol(skinks_mean)]<-c(paste0(names(skinks_mean[2:ncol(skinks_mean)]),"_mean"))
 skinks_sd<-aggregate(data_skinks[,c(8:23,27,42)],by=list(data_skinks$snakes,data_skinks$sex),function(x) sd(x,na.rm=T))
 colnames(skinks_sd)[2:ncol(skinks_sd)]<-c(paste0(names(skinks_sd[2:ncol(skinks_sd)]),"_sd"))
-skinks_n<-aggregate(data_skinks[,c(8:23,27,42)],by=list(data_skinks$snakes,data_skinks$sex),function(x) length(complete.cases(x)))
+skinks_n<-aggregate(data_skinks[,c(8:23,27,42)],by=list(data_skinks$snakes,data_skinks$sex),function(x) length(x[complete.cases(x)]))
 colnames(skinks_n)[2:ncol(skinks_n)]<-c(paste0(names(skinks_n[2:ncol(skinks_n)]),"_n"))
 skinks<-cbind(skinks_mean,skinks_sd[,3:ncol(skinks_sd)],skinks_n[,3:ncol(skinks_n)])
 geckos_mean<-aggregate(data_geckos[,c(8:15,28,30,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) mean(x,na.rm=T))
 colnames(geckos_mean)[2:ncol(geckos_mean)]<-c(paste0(names(geckos_mean[2:ncol(geckos_mean)]),"_mean"))
 geckos_sd<-aggregate(data_geckos[,c(8:15,28,30,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) sd(x,na.rm=T))
 colnames(geckos_sd)[2:ncol(geckos_sd)]<-c(paste0(names(geckos_sd[2:ncol(geckos_sd)]),"_sd"))
-geckos_n<-aggregate(data_geckos[,c(8:15,28,30,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) length(complete.cases(x)))
+geckos_n<-aggregate(data_geckos[,c(8:15,28,30,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) length(x[complete.cases(x)]))
 colnames(geckos_n)[2:ncol(geckos_n)]<-c(paste0(names(geckos_n[2:ncol(geckos_n)]),"_n"))
 geckos<-cbind(geckos_mean,geckos_sd[,3:ncol(geckos_sd)],geckos_n[,3:ncol(geckos_n)])
 write.csv(lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/lizards.csv")
