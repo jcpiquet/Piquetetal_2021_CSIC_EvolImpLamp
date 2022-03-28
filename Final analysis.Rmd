@@ -81,6 +81,7 @@ library(DHARMa)
 library(car)
 library(multcomp)
 library(emmeans)
+
 tapply(data_geckos$svl,data_geckos$snakes,function(x) rosnerTest(log10(x),k=10)) # checking for outliers
 plot(svl~sex,data=data_geckos)
 plot(svl~snakes,data=data_geckos)
@@ -91,20 +92,17 @@ glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes+(1|site),data=data_geckos,disp
 plotResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 testResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 Anova(glm_disp_svl_inter,type=2)
-pairs(emmeans(glm_disp_svl_inter,~snakes|sex))
-pairs(emmeans(glm_disp_svl_inter,~sex|snakes))
+contrast(emmeans(glm_disp_svl_inter,~snakes|sex,adjust="fdr"))
+contrast(emmeans(glm_disp_svl_inter,~sex|snakes,adjust="fdr"))
 lapply(split(data_geckos,data_geckos$sex),function(x) tapply(x$svl,x$snakes,function(x) mean(x,na.rm=T)))
 lapply(split(data_geckos,data_geckos$sex),function(x) tapply(x$svl,x$snakes,function(x) sd(x,na.rm=T)))
 tapply(data_geckos$svl,data_geckos$snakes, mean)
 tapply(data_geckos$svl,data_geckos$snakes, sd)
-rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 
-# Levene Test for the homogeneity of the variance
-with(data_geckos,LeveneTest(log10(svl)~snakes))
-with(data_geckos[data_geckos$sex=="FEM",],LeveneTest(log10(svl)~snakes*sex))
-with(data_geckos[data_geckos$sex=="MAL",],LeveneTest(log10(svl)~snakes*sex))
-tapply(data_geckos$svl,data_geckos$snakes,function(x) var(x,na.rm=T))
-lapply(split(data_geckos,data_geckos$sex),function(x) tapply(x$svl,x$snakes,function(x) var(x,na.rm=T)))
+results_svl_geckos<-Anova(glm_disp_svl_inter,type=2)
+results_svl_geckos<-do.call(rbind,results_svl_geckos)
+results_svl_geckos<-t(as.matrix(results_svl_geckos))
+write.csv(results_svl_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_geckos.csv")
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
@@ -130,17 +128,15 @@ glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes+(1|site),data=data_lizards,dis
 plotResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 testResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 Anova(glm_disp_svl_inter,type=2)
-pairs(emmeans(glm_disp_svl_inter,~snakes|sex))
-pairs(emmeans(glm_disp_svl_inter,~sex|snakes))
+contrast(emmeans(glm_disp_svl_inter,~snakes|sex,adjust="fdr"))
+contrast(emmeans(glm_disp_svl_inter,~sex|snakes,adjust="fdr"))
 lapply(split(data_lizards,data_lizards$sex),function(x) tapply(x$svl,x$snakes,function(x) mean(x,na.rm=T)))
 lapply(split(data_lizards,data_lizards$sex),function(x) tapply(x$svl,x$snakes,function(x) sd(x,na.rm=T)))
-rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 
-# Levene Test for the homogeneity of the variance
-with(data_lizards,LeveneTest(log10(svl)~snakes))
-with(data_lizards[data_lizards$sex=="FEM",],LeveneTest(log10(svl)~snakes*sex))
-with(data_lizards[data_lizards$sex=="MAL",],LeveneTest(log10(svl)~snakes*sex))
-lapply(split(data_lizards,data_lizards$sex),function(x) tapply(x$svl,x$snakes,function(x) var(x,na.rm=T)))
+results_svl_lizards<-Anova(glm_disp_svl_inter,type=2)
+results_svl_lizards<-do.call(rbind,results_svl_lizards)
+results_svl_lizards<-t(as.matrix(results_svl_lizards))
+write.csv(results_svl_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_lizards.csv")
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
@@ -166,14 +162,13 @@ glm_disp_svl_inter<-glmmTMB(log10(svl)~sex*snakes+(1|site),data=data_skinks,disp
 plotResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 testResiduals(simulateResiduals(glm_disp_svl_inter,n=1000))
 Anova(glm_disp_svl_inter,type=2)
-pairs(emmeans(glm_disp_svl_inter,~snakes|sex))
-pairs(emmeans(glm_disp_svl_inter,~sex|snakes))
-rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
+contrast(emmeans(glm_disp_svl_inter,~snakes|sex,adjust="fdr"))
+contrast(emmeans(glm_disp_svl_inter,~sex|snakes,adjust="fdr"))
 
-# Levene Test for the homogeneity of the variance
-with(data_skinks,LeveneTest(log10(svl)~snakes))
-with(data_skinks[data_skinks$sex=="FEM",],LeveneTest(log10(svl)~snakes*sex))
-with(data_skinks[data_skinks$sex=="MAL",],LeveneTest(log10(svl)~snakes*sex))
+results_svl_skinks<-Anova(glm_disp_svl_inter,type=2)
+results_svl_skinks<-do.call(rbind,results_svl_skinks)
+results_svl_skinks<-t(as.matrix(results_svl_skinks))
+write.csv(results_svl_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_skinks.csv")
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
@@ -227,7 +222,7 @@ morphology$head_height[150]<-NA
 morphology$lfl[c(66,170,112,47)]<-NA
 morphology$front_toe[c(47,143)]<-NA # 55 not included, does not seem error
 morphology$lhl[c(112)]<-NA # 168 not included, does not seem error
-morphology$hind_toe[236]<-NA
+morphology$hind_toe[236]<-NA # 130 not included, does not seem error
 # Removing outliers data
 data_geckos$head_length[c(121,47,67,195,2)]<-NA
 data_geckos$head_width[c(70,52,199)]<-NA
@@ -235,7 +230,7 @@ data_geckos$head_height[233]<-NA
 data_geckos$lfl[c(158,3,2,140)]<-NA
 data_geckos$front_toe[c(140,227)]<-NA # 148 not included, does not seem error
 data_geckos$lhl[c(2)]<-NA # 28 not included, does not seem error
-data_geckos$hind_toe[9]<-NA
+data_geckos$hind_toe[9]<-NA # 215 not included, does not seem error
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
 
@@ -257,10 +252,10 @@ lapply(models,function(x) testResiduals(simulateResiduals(x,n=1000)))
 lapply(models,function(x) Anova(x,type=2))
 results_geckos<-lapply(models,function(x) Anova(x,type=2))
 results_geckos<-do.call(rbind,results_geckos)
-lapply(models,function(x) pairs(emmeans(x,~snakes|sex)))
-lapply(models,function(x) pairs(emmeans(x,~sex|snakes)))
+lapply(models,function(x) contrast(emmeans(x,~snakes|sex, adjust="fdr")))
+lapply(models,function(x) contrast(emmeans(x,~sex|snakes,adjust="fdr")))
 
-write.csv(results_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table 1/results_geckos.csv")
+write.csv(results_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_geckos.csv")
 
 # Analysis of lamellae
 with(data_geckos,cor.test(lamella,log10(svl),method="spearman"))
@@ -275,6 +270,7 @@ data_lamella$snakes<-replace(data_lamella$snakes,data_lamella$snakes==1,"YES")
 data_lamella$snakes<-replace(data_lamella$snakes,data_lamella$snakes==2,"NO")
 lapply(split(data_lamella,data_lamella$sex),function(x) leveneTest(lamella~snakes,data=x))
 lapply(split(data_lamella,data_lamella$sex),function(x) kruskal.test(lamella~snakes,data=x))
+with(data_lamella,kruskal.test(snakes,lamella))
 
 aggregate(data_lamella$lamella,by=list(data_lamella$snakes,data_lamella$sex),mean)
 aggregate(data_lamella$lamella,by=list(data_lamella$snakes,data_lamella$sex),sd)
@@ -302,7 +298,7 @@ morphology<-mapply(function(x,y) cbind(x,y),x=morphology,y=names)
 morphology<-Reduce(function(x,y) merge(x,y,by="y",all=T),morphology)
 colnames(morphology)<-c("id",names(data_lizards[,c(8:15)]))
 morphology<-morphology[,-1]
-factors<-data_lizards[-c(29,30),c(1:7)]
+factors<-data_lizards[-c(30,32),c(1:7)]
 morphology<-merge(factors,morphology,by="row.names",all=T)
 morphology<-morphology[,-1]
 rosner_test<-lapply(morphology[,8:15],function(x) tapply(x,morphology$snakes,function(y) rosnerTest(y,k=10)))
@@ -328,20 +324,17 @@ rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```{r morphology analysis}
 library(emmeans)
 library(effects)
+library(gplots)
 
 lapply(data_lizards[,c(8:15)],function(x) plotmeans(x~sex,data=data_lizards))
-lapply(data_lizards[,c(8:15)],function(x) plotmeans(x~site,data=data_lizards))
-lapply(data_lizards[,c(8:15)],function(x) plotmeans(x~snakes,data=data_lizards))
 
-models<-lapply(data_lizards[,c(8:15)],function(x) glmmTMB(log(x)~log(svl)+sex*snakes+(1|site),data=data_lizards,dispformula = ~site))
+models<-lapply(data_lizards[,c(8:15)],function(x) glmmTMB(log10(x)~log10(svl)+sex*snakes+(1|site),data=data_lizards,dispformula = ~site))
 lapply(models,function(x) plot(simulateResiduals(x,n=1000)))
 lapply(models,function(x) Anova(x,type=2))
 results_lizards<-lapply(models,function(x) Anova(x,type=2))
 results_lizards<-do.call(rbind,results_lizards)
-lapply(models,function(x) pairs(emmeans(x,~snakes|sex)))
-lapply(models,function(x) pairs(emmeans(x,~sex|snakes)))
 
-write.csv(results_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table 1/results_lizards.csv")
+write.csv(results_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_lizards.csv")
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
@@ -401,12 +394,12 @@ lapply(data_skinks[,c(8:22,27)],function(x) plotmeans(x~snakes,data=data_skinks)
 models<-lapply(data_skinks[,c(8:22,27)],function(x) glmmTMB(log10(x)~log10(svl)+sex*snakes+(1|site),data=data_skinks))
 lapply(models,function(x) plot(simulateResiduals(x,n=1000)))
 lapply(models,function(x) Anova(x,type=2))
-lapply(models[c(4,7)],function(x) pairs(emmeans(x,~snakes|sex)))
-lapply(models[c(4,7)],function(x) pairs(emmeans(x,~sex|snakes)))
+lapply(models[c(4,7)],function(x) contrast(emmeans(x,~snakes|sex,adjust="fdr")))
+lapply(models[c(4,7)],function(x) contrast(emmeans(x,~sex|snakes,adjust="fdr")))
 
 results_skinks<-lapply(models,function(x) Anova(x,type=2))
 results_skinks<-do.call(rbind,results_skinks)
-write.csv(results_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table 1/results_skinks.csv")
+write.csv(results_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_skinks.csv")
 
 aggregate(data_skinks[,c(8:22,27)],by=list(data_skinks$snakes),function(x) mean(x,na.rm=T))
 aggregate(data_skinks$ufl,by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
@@ -434,7 +427,6 @@ write.csv(skinks_sex,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communica
 write.csv(skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks.csv")
 ```
 
-
 ## **Analysis of body condition and parasites**
 
 ### **Body condition**
@@ -446,10 +438,15 @@ library(onewaytests)
 library(glmmTMB)
 library(gplots)
 library(dplyr)
+library(EnvStats)
+library(DHARMa)
+library(car)
+library(emmeans)
 
-bsma_geckos<-lm(log10(weight)~log10(svl),data=data_geckos)
-bsma_geckos<-bsma_geckos$coefficients[2]/cor.test(log10(data_geckos$weight),log10(data_geckos$svl),method="pearson")$estimate
-data_geckos$scaled_mass<-log10(data_geckos$weight)*(mean(log10(data_geckos$svl),na.rm=T)/log10(data_geckos$svl))^bsma_geckos
+
+bsma_geckos<-lm(log(weight)~log(svl),data=data_geckos)
+bsma_geckos<-bsma_geckos$coefficients[2]/cor.test(log(data_geckos$weight),log(data_geckos$svl),method="pearson")$estimate
+data_geckos$scaled_mass<-log(data_geckos$weight)*(mean(log(data_geckos$svl),na.rm=T)/log(data_geckos$svl))^bsma_geckos
 tapply(data_geckos$scaled_mass,data_geckos$snakes,function(x) rosnerTest(x,k=10))
 data_geckos$scaled_mass[c(146,207,239)]<-NA
 homog.test(scaled_mass~sex,data=data_geckos,method="Levene")
@@ -458,10 +455,13 @@ plotmeans(scaled_mass~sex,data=data_geckos)
 model_bodycond<-glmmTMB(scaled_mass~sex*snakes+(1|site),data=data_geckos,dispformula =  ~site+sex)
 plot(simulateResiduals(model_bodycond,n=1000))
 Anova(model_bodycond,type=2)
-pairs(emmeans(model_bodycond,~snakes|sex))
-pairs(emmeans(model_bodycond,~sex|snakes))
+results_bodycond_geckos<-Anova(model_bodycond,type=2)
+results_bodycond_geckos<-do.call(rbind,results_bodycond_geckos)
+results_bodycond_geckos<-t(as.matrix(results_bodycond_geckos))
+write.csv(results_bodycond_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_geckos.csv")
+contrast(emmeans(model_bodycond,~snakes|sex,adjust="fdr"))
+contrast(emmeans(model_bodycond,~sex|snakes,adjust="fdr"))
 ```
-
 
 #### **Lizards**
 
@@ -469,9 +469,9 @@ pairs(emmeans(model_bodycond,~sex|snakes))
 library(onewaytests)
 library(glmmTMB)
 library(gplots)
-bsma_lizards<-lm(log10(weight)~log10(svl),data=data_lizards)
-bsma_lizards<-bsma_lizards$coefficients[2]/cor.test(log10(data_lizards$weight),log10(data_lizards$svl),method="pearson")$estimate
-data_lizards$scaled_mass<-log10(data_lizards$weight)*(mean(log10(data_lizards$svl),na.rm=T)/log10(data_lizards$svl))^bsma_lizards
+bsma_lizards<-lm(log(weight)~log(svl),data=data_lizards)
+bsma_lizards<-bsma_lizards$coefficients[2]/cor.test(log(data_lizards$weight),log(data_lizards$svl),method="pearson")$estimate
+data_lizards$scaled_mass<-log(data_lizards$weight)*(mean(log(data_lizards$svl),na.rm=T)/log(data_lizards$svl))^bsma_lizards
 tapply(data_lizards$scaled_mass,data_lizards$snakes,function(x) rosnerTest(x,k=10))
 data_lizards$scaled_mass[c(38)]<-NA
 homog.test(scaled_mass~sex,data=data_lizards,method="Levene")
@@ -480,8 +480,12 @@ plotmeans(scaled_mass~sex,data=data_lizards)
 model_bodycond<-glmmTMB(scaled_mass~sex*snakes+(1|site),data=data_lizards,dispformula =  ~site+sex)
 plot(simulateResiduals(model_bodycond,n=1000))
 Anova(model_bodycond,type=2)
-pairs(emmeans(model_bodycond,~snakes|sex))
-pairs(emmeans(model_bodycond,~sex|snakes))
+results_bodycond_lizards<-Anova(model_bodycond,type=2)
+results_bodycond_lizards<-do.call(rbind,results_bodycond_lizards)
+results_bodycond_lizards<-t(as.matrix(results_bodycond_lizards))
+write.csv(results_bodycond_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_lizards.csv")
+contrast(emmeans(model_bodycond,~snakes|sex,adjust="fdr"))
+contrast(emmeans(model_bodycond,~sex|snakes,adjust="fdr"))
 tapply(data_lizards$scaled_mass,data_lizards$sex,function(x) mean(x,na.rm=T))
 ```
 
@@ -491,9 +495,9 @@ tapply(data_lizards$scaled_mass,data_lizards$sex,function(x) mean(x,na.rm=T))
 library(onewaytests)
 library(glmmTMB)
 library(gplots)
-bsma_skinks<-lm(log10(weight)~log10(svl),data=data_skinks)
-bsma_skinks<-bsma_skinks$coefficients[2]/cor.test(log10(data_skinks$weight),log10(data_skinks$svl),method="pearson")$estimate
-data_skinks$scaled_mass<-log10(data_skinks$weight)*(mean(log10(data_skinks$svl),na.rm=T)/log10(data_skinks$svl))^bsma_skinks
+bsma_skinks<-lm(log(weight)~log(svl),data=data_skinks)
+bsma_skinks<-bsma_skinks$coefficients[2]/cor.test(log(data_skinks$weight),log(data_skinks$svl),method="pearson")$estimate
+data_skinks$scaled_mass<-log(data_skinks$weight)*(mean(log(data_skinks$svl),na.rm=T)/log(data_skinks$svl))^bsma_skinks
 tapply(data_skinks$scaled_mass,data_skinks$snakes,function(x) rosnerTest(x,k=10))
 homog.test(scaled_mass~sex,data=data_skinks,method="Levene")
 welch.test(scaled_mass~sex,rate=0.1,data=data_skinks)
@@ -501,8 +505,13 @@ plotmeans(scaled_mass~sex,data=data_skinks)
 model_bodycond<-glmmTMB(scaled_mass~sex*snakes+(1|site),data=data_skinks,dispformula =  ~site+sex)
 plot(simulateResiduals(model_bodycond,n=1000))
 Anova(model_bodycond,type=2)
-pairs(emmeans(model_bodycond,~snakes|sex))
-pairs(emmeans(model_bodycond,~sex|snakes))
+results_bodycond_skinks<-Anova(model_bodycond,type=2)
+results_bodycond_skinks<-do.call(rbind,results_bodycond_skinks)
+results_bodycond_skinks<-t(as.matrix(results_bodycond_skinks))
+write.csv(results_bodycond_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_skinks.csv")
+contrast(emmeans(model_bodycond,~snakes|sex,adjust="fdr"))
+contrast(emmeans(model_bodycond,~sex|snakes,adjust="fdr"))
+tapply(data_skinks$scaled_mass,data_skinks$snakes,mean)
 ```
 
 ### **Parasites**
@@ -516,9 +525,15 @@ glm_prevalence<-glmmTMB(mites_prev~sex*snakes+(1|site),data=data_geckos,family=b
 plotResiduals(simulateResiduals(glm_prevalence,n=1000))
 testResiduals(simulateResiduals(glm_prevalence,n=1000))
 Anova(glm_prevalence,type=2)
+results_prevalence_geckos<-Anova(glm_prevalence,type=2)
+results_prevalence_geckos<-do.call(rbind,results_prevalence_geckos)
+results_prevalence_geckos<-t(as.matrix(results_prevalence_geckos))
+write.csv(results_prevalence_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_prevalence_geckos.csv")
 table<-table(data_geckos$mites_prev,data_geckos$snakes)
 table<-table/matrix(c(sum(table[,1]),sum(table[,1]),sum(table[,2]),sum(table[,2])),nrow=2,ncol=2)*100
 table
+(table(data_geckos[data_geckos$sex=="FEM",]$snakes,data_geckos[data_geckos$sex=="FEM",]$mites_prev)/apply(table(data_geckos[data_geckos$sex=="FEM",]$snakes,data_geckos[data_geckos$sex=="FEM",]$mites_prev),1,sum))*100
+(table(data_geckos[data_geckos$sex=="MAL",]$snakes,data_geckos[data_geckos$sex=="MAL",]$mites_prev)/apply(table(data_geckos[data_geckos$sex=="MAL",]$snakes,data_geckos[data_geckos$sex=="MAL",]$mites_prev),1,sum))*100
 ```
 
 ```{r mites: intensity}
@@ -530,8 +545,12 @@ plotResiduals(simulateResiduals(glm_abundance,n=1000))
 testResiduals(simulateResiduals(glm_abundance,n=1000))
 testZeroInflation(simulateResiduals(glm_abundance,n=1000))
 Anova(glm_abundance,type=2)
-pairs(emmeans(glm_abundance,~snakes|sex))
-pairs(emmeans(glm_abundance,~sex|snakes))
+results_abundance_geckos<-Anova(glm_abundance,type=2)
+results_abundance_geckos<-do.call(rbind,results_abundance_geckos)
+results_abundance_geckos<-t(as.matrix(results_abundance_geckos))
+write.csv(results_abundance_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_abundance_geckos.csv")
+contrast(emmeans(glm_abundance,~snakes|sex,adjust="fdr"))
+contrast(emmeans(glm_abundance,~sex|snakes,adjust="fdr"))
 tapply(data_geckos[data_geckos$sex=="FEM",]$mites,data_geckos[data_geckos$sex=="FEM",]$snakes,function(x) mean(x,na.rm=T))
 tapply(data_geckos[data_geckos$sex=="FEM",]$mites,data_geckos[data_geckos$sex=="FEM",]$snakes,function(x) sd(x,na.rm=T))
 tapply(data_geckos[data_geckos$sex=="MAL",]$mites,data_geckos[data_geckos$sex=="MAL",]$snakes,function(x) mean(x,na.rm=T))
@@ -547,9 +566,15 @@ glm_prevalence<-glmmTMB(mites_prev~sex*snakes+(1|site),data=data_lizards,family=
 plotResiduals(simulateResiduals(glm_prevalence,n=1000))
 testResiduals(simulateResiduals(glm_prevalence,n=1000))
 Anova(glm_prevalence,type=2)
+results_prevalence_lizards<-Anova(glm_prevalence,type=2)
+results_prevalence_lizards<-do.call(rbind,results_prevalence_lizards)
+results_prevalence_lizards<-t(as.matrix(results_prevalence_lizards))
+write.csv(results_prevalence_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_prevalence_lizards.csv")
 table<-table(data_lizards$mites_prev,data_lizards$snakes)
 table<-table/matrix(c(sum(table[,1]),sum(table[,1]),sum(table[,2]),sum(table[,2])),nrow=2,ncol=2)*100
 table
+(table(data_lizards[data_lizards$sex=="FEM",]$snakes,data_lizards[data_lizards$sex=="FEM",]$mites_prev)/apply(table(data_lizards[data_lizards$sex=="FEM",]$snakes,data_lizards[data_lizards$sex=="FEM",]$mites_prev),1,sum))*100
+(table(data_lizards[data_lizards$sex=="MAL",]$snakes,data_lizards[data_lizards$sex=="MAL",]$mites_prev)/apply(table(data_lizards[data_lizards$sex=="MAL",]$snakes,data_lizards[data_lizards$sex=="MAL",]$mites_prev),1,sum))*100
 ```
 
 ```{r mites: intensity}
@@ -561,9 +586,21 @@ plotResiduals(simulateResiduals(glm_abundance,n=1000))
 testResiduals(simulateResiduals(glm_abundance,n=1000))
 testZeroInflation(simulateResiduals(glm_abundance,n=1000))
 Anova(glm_abundance,type=2)
+results_abundance_lizards<-Anova(glm_abundance,type=2)
+results_abundance_lizards<-do.call(rbind,results_abundance_lizards)
+results_abundance_lizards<-t(as.matrix(results_abundance_lizards))
+write.csv(results_abundance_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_abundance_lizards.csv")
 tapply(data_lizards$mites,data_lizards$snakes,mean)
 tapply(data_lizards$mites,data_lizards$snakes,sd)
 ```
+#### **Skinks**
+
+```{r skink mites}
+(table(data_skinks[data_skinks$sex=="FEM",]$snakes,data_skinks[data_skinks$sex=="FEM",]$mites_prev)/apply(table(data_skinks[data_skinks$sex=="FEM",]$snakes,data_skinks[data_skinks$sex=="FEM",]$mites_prev),1,sum))*100
+(table(data_skinks[data_skinks$sex=="MAL",]$snakes,data_skinks[data_skinks$sex=="MAL",]$mites_prev)/apply(table(data_skinks[data_skinks$sex=="MAL",]$snakes,data_skinks[data_skinks$sex=="MAL",]$mites_prev),1,sum))*100
+```
+
+
 
 #### **Building the body condition and parasite data for Veusz**
 
