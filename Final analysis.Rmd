@@ -270,7 +270,7 @@ data_lamella$snakes<-replace(data_lamella$snakes,data_lamella$snakes==1,"YES")
 data_lamella$snakes<-replace(data_lamella$snakes,data_lamella$snakes==2,"NO")
 lapply(split(data_lamella,data_lamella$sex),function(x) leveneTest(lamella~snakes,data=x))
 lapply(split(data_lamella,data_lamella$sex),function(x) kruskal.test(lamella~snakes,data=x))
-with(data_lamella,kruskal.test(snakes,lamella))
+with(data_lamella,kruskal.test(lamella,snakes))
 
 aggregate(data_lamella$lamella,by=list(data_lamella$snakes,data_lamella$sex),mean)
 aggregate(data_lamella$lamella,by=list(data_lamella$snakes,data_lamella$sex),sd)
@@ -382,7 +382,7 @@ data_skinks$body_length[c(53,36,40)]<-NA # 50 not included
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
 
-```{r}
+```{r mophological traits skinks}
 library(emmeans)
 library(effects)
 library(glmmTMB)
