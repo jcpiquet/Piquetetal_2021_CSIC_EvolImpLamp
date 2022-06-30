@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE,warning = F)
 
 ```{r data formatting & path creation (geckos)}
 # Folder
-folder<-"E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/"
+folder<-"F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/"
 # Data creation
 library(readxl)
 data_geckos<-read_excel(paste0(folder,"data_geckos.xlsx"))
@@ -35,7 +35,7 @@ data_geckos$lamella<-apply(data_geckos[,c(18:19)],1,mean)
 library(readxl)
 
 # Folder
-folder<-"E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/"
+folder<-"F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/"
 # Data creation
 data_lizards<-read_excel(paste0(folder,"data_lizards.xlsx"))
 data_lizards<-data_lizards[data_lizards$sex=="FEM"|data_lizards$sex=="MAL",]
@@ -49,7 +49,7 @@ data_lizards[,c(1,3:7,30)]<-lapply(data_lizards[,c(1,3:7,30)],as.factor)
 library(readxl)
 
 # Folder
-folder<-"E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/"
+folder<-"F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Research/Data/"
 # Data creation
 data_skinks<-read_excel(paste0(folder,"data_skinks.xlsx"))
 data_skinks<-data_skinks[data_skinks$sex=="FEM"|data_skinks$sex=="MAL",]
@@ -102,7 +102,7 @@ tapply(data_geckos$svl,data_geckos$snakes, sd)
 results_svl_geckos<-Anova(glm_disp_svl_inter,type=2)
 results_svl_geckos<-do.call(rbind,results_svl_geckos)
 results_svl_geckos<-t(as.matrix(results_svl_geckos))
-write.csv(results_svl_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_geckos.csv")
+write.csv(results_svl_geckos,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_geckos.csv")
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
@@ -136,7 +136,7 @@ lapply(split(data_lizards,data_lizards$sex),function(x) tapply(x$svl,x$snakes,fu
 results_svl_lizards<-Anova(glm_disp_svl_inter,type=2)
 results_svl_lizards<-do.call(rbind,results_svl_lizards)
 results_svl_lizards<-t(as.matrix(results_svl_lizards))
-write.csv(results_svl_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_lizards.csv")
+write.csv(results_svl_lizards,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_lizards.csv")
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
@@ -168,7 +168,7 @@ contrast(emmeans(glm_disp_svl_inter,~sex|snakes,adjust="fdr"))
 results_svl_skinks<-Anova(glm_disp_svl_inter,type=2)
 results_svl_skinks<-do.call(rbind,results_svl_skinks)
 results_svl_skinks<-t(as.matrix(results_svl_skinks))
-write.csv(results_svl_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_skinks.csv")
+write.csv(results_svl_skinks,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_svl_skinks.csv")
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
@@ -240,7 +240,7 @@ results_geckos<-do.call(rbind,results_geckos)
 lapply(models,function(x) contrast(emmeans(x,~snakes|sex, adjust="fdr")))
 lapply(models,function(x) contrast(emmeans(x,~sex|snakes,adjust="fdr")))
 
-write.csv(results_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_geckos.csv")
+write.csv(results_geckos,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_geckos.csv")
 
 # Analysis of lamellae
 with(data_geckos,cor.test(lamella,log10(svl),method="spearman"))
@@ -319,7 +319,7 @@ lapply(models,function(x) Anova(x,type=2))
 results_lizards<-lapply(models,function(x) Anova(x,type=2))
 results_lizards<-do.call(rbind,results_lizards)
 
-write.csv(results_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_lizards.csv")
+write.csv(results_lizards,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_lizards.csv")
 
 rm(list = setdiff(ls(),c("data_geckos","data_lizards","data_skinks","folder")))
 ```
@@ -384,7 +384,7 @@ lapply(models[c(4,7)],function(x) contrast(emmeans(x,~sex|snakes,adjust="fdr")))
 
 results_skinks<-lapply(models,function(x) Anova(x,type=2))
 results_skinks<-do.call(rbind,results_skinks)
-write.csv(results_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_skinks.csv")
+write.csv(results_skinks,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/results_skinks.csv")
 
 aggregate(data_skinks[,c(8:22,27)],by=list(data_skinks$snakes),function(x) mean(x,na.rm=T))
 aggregate(data_skinks$ufl,by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
@@ -424,7 +424,7 @@ Anova(model_bodycond,type=2)
 results_bodycond_geckos<-Anova(model_bodycond,type=2)
 results_bodycond_geckos<-do.call(rbind,results_bodycond_geckos)
 results_bodycond_geckos<-t(as.matrix(results_bodycond_geckos))
-write.csv(results_bodycond_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_geckos.csv")
+write.csv(results_bodycond_geckos,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_geckos.csv")
 contrast(emmeans(model_bodycond,~snakes|sex,adjust="fdr"))
 contrast(emmeans(model_bodycond,~sex|snakes,adjust="fdr"))
 ```
@@ -449,7 +449,7 @@ Anova(model_bodycond,type=2)
 results_bodycond_lizards<-Anova(model_bodycond,type=2)
 results_bodycond_lizards<-do.call(rbind,results_bodycond_lizards)
 results_bodycond_lizards<-t(as.matrix(results_bodycond_lizards))
-write.csv(results_bodycond_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_lizards.csv")
+write.csv(results_bodycond_lizards,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_lizards.csv")
 contrast(emmeans(model_bodycond,~snakes|sex,adjust="fdr"))
 contrast(emmeans(model_bodycond,~sex|snakes,adjust="fdr"))
 tapply(data_lizards$scaled_mass,data_lizards$sex,function(x) mean(x,na.rm=T))
@@ -474,7 +474,7 @@ Anova(model_bodycond,type=2)
 results_bodycond_skinks<-Anova(model_bodycond,type=2)
 results_bodycond_skinks<-do.call(rbind,results_bodycond_skinks)
 results_bodycond_skinks<-t(as.matrix(results_bodycond_skinks))
-write.csv(results_bodycond_skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_skinks.csv")
+write.csv(results_bodycond_skinks,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_bodycond_skinks.csv")
 contrast(emmeans(model_bodycond,~snakes|sex,adjust="fdr"))
 contrast(emmeans(model_bodycond,~sex|snakes,adjust="fdr"))
 tapply(data_skinks$scaled_mass,data_skinks$snakes,mean)
@@ -494,7 +494,7 @@ Anova(glm_prevalence,type=2)
 results_prevalence_geckos<-Anova(glm_prevalence,type=2)
 results_prevalence_geckos<-do.call(rbind,results_prevalence_geckos)
 results_prevalence_geckos<-t(as.matrix(results_prevalence_geckos))
-write.csv(results_prevalence_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_prevalence_geckos.csv")
+write.csv(results_prevalence_geckos,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_prevalence_geckos.csv")
 table<-table(data_geckos$mites_prev,data_geckos$snakes)
 table<-table/matrix(c(sum(table[,1]),sum(table[,1]),sum(table[,2]),sum(table[,2])),nrow=2,ncol=2)*100
 table
@@ -514,7 +514,7 @@ Anova(glm_abundance,type=2)
 results_abundance_geckos<-Anova(glm_abundance,type=2)
 results_abundance_geckos<-do.call(rbind,results_abundance_geckos)
 results_abundance_geckos<-t(as.matrix(results_abundance_geckos))
-write.csv(results_abundance_geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_abundance_geckos.csv")
+write.csv(results_abundance_geckos,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_abundance_geckos.csv")
 contrast(emmeans(glm_abundance,~snakes|sex,adjust="fdr"))
 contrast(emmeans(glm_abundance,~sex|snakes,adjust="fdr"))
 tapply(data_geckos[data_geckos$sex=="FEM",]$mites,data_geckos[data_geckos$sex=="FEM",]$snakes,function(x) mean(x,na.rm=T))
@@ -535,7 +535,7 @@ Anova(glm_prevalence,type=2)
 results_prevalence_lizards<-Anova(glm_prevalence,type=2)
 results_prevalence_lizards<-do.call(rbind,results_prevalence_lizards)
 results_prevalence_lizards<-t(as.matrix(results_prevalence_lizards))
-write.csv(results_prevalence_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_prevalence_lizards.csv")
+write.csv(results_prevalence_lizards,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_prevalence_lizards.csv")
 table<-table(data_lizards$mites_prev,data_lizards$snakes)
 table<-table/matrix(c(sum(table[,1]),sum(table[,1]),sum(table[,2]),sum(table[,2])),nrow=2,ncol=2)*100
 table
@@ -555,7 +555,7 @@ Anova(glm_abundance,type=2)
 results_abundance_lizards<-Anova(glm_abundance,type=2)
 results_abundance_lizards<-do.call(rbind,results_abundance_lizards)
 results_abundance_lizards<-t(as.matrix(results_abundance_lizards))
-write.csv(results_abundance_lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_abundance_lizards.csv")
+write.csv(results_abundance_lizards,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Tables_results/table_abundance_lizards.csv")
 tapply(data_lizards$mites,data_lizards$snakes,mean)
 tapply(data_lizards$mites,data_lizards$snakes,sd)
 ```
@@ -576,7 +576,7 @@ lizards_mean_morphology<-aggregate(data_lizards$svl,by=list(data_lizards$snakes,
 lizards_sd_morphology<-aggregate(data_lizards$svl,by=list(data_lizards$snakes,data_lizards$sex),function(x) sd(x,na.rm=T))
 lizards<-cbind(lizards_mean_morphology,lizards_sd_morphology[,3])
 colnames(lizards)<-c("snakes","sex","svl_mean","svl_sd")
-write.csv(lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/lizards.csv")
+write.csv(lizards,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/lizards.csv")
 
 ## Skinks
 skinks_mean_morphology<-aggregate(data_skinks[,c(11,14)],by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
@@ -587,15 +587,15 @@ skinks<-cbind(skinks_mean_morphology,skinks_sd_morphology[,3:4])
 skinks_snakes<-cbind(skinks_mean_morphology_snakes,skinks_sd_morphology_snakes[,2:4])
 colnames(skinks)<-c("snakes","sex",paste0(names(skinks[,3:4]),"_mean"),paste0(names(skinks[,5:6]),"_sd"))
 colnames(skinks_snakes)<-c("snakes",paste0(names(skinks_snakes[,2:4]),"_mean"),paste0(names(skinks_snakes[,5:7]),"_sd"))
-write.csv(skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks.csv")
-write.csv(skinks_snakes,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks_snakes.csv")
+write.csv(skinks,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks.csv")
+write.csv(skinks_snakes,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/skinks_snakes.csv")
 
 ## Geckos
 geckos_mean_morphology<-aggregate(data_geckos[,c(13,15,30)],by=list(data_geckos$snakes,data_geckos$sex),function(x) mean(x,na.rm=T))
 geckos_sd_morphology<-aggregate(data_geckos[,c(13,15,30)],by=list(data_geckos$snakes,data_geckos$sex),function(x) sd(x,na.rm=T))
 geckos<-cbind(geckos_mean_morphology,geckos_sd_morphology[3:5])
 colnames(geckos)<-c("snakes","sex",paste0(names(geckos[,3:5]),"_mean"),paste0(names(geckos[,6:8]),"_sd"))
-write.csv(geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/geckos.csv")
+write.csv(geckos,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_morphology/geckos.csv")
 
 # Fig. 4
 
@@ -608,15 +608,15 @@ lizards_mean_snakes<-aggregate(data_lizards$mites,by=list(data_lizards$snakes),f
 lizards_sd_snakes<-aggregate(data_lizards$mites,by=list(data_lizards$snakes),function(x) sd(x,na.rm=T))
 lizards_snakes<-cbind(lizards_mean_snakes,lizards_sd_snakes[,2])
 colnames(lizards_snakes)<-c("snakes","mites_mean","mites_sd")
-write.csv(lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/lizards.csv")
-write.csv(lizards_snakes,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/lizards_snakes.csv")
+write.csv(lizards,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/lizards.csv")
+write.csv(lizards_snakes,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/lizards_snakes.csv")
 
 ## Skinks
 skinks_mean_bodycond<-aggregate(data_skinks$scaled_mass,by=list(data_skinks$snakes,data_skinks$sex),function(x) mean(x,na.rm=T))
 skinks_sd_bodycond<-aggregate(data_skinks$scaled_mass,by=list(data_skinks$snakes,data_skinks$sex),function(x) sd(x,na.rm=T))
 skinks<-cbind(skinks_mean_bodycond,skinks_sd_bodycond[,3])
 colnames(skinks)<-c("snakes","sex","scaled_mass_mean","scaled_mass_sd")
-write.csv(skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/skinks.csv")
+write.csv(skinks,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/skinks.csv")
 
 
 ## Geckos
@@ -624,7 +624,7 @@ geckos_mean_bodycond<-aggregate(data_geckos[,c(28,31)],by=list(data_geckos$snake
 geckos_sd_bodycond<-aggregate(data_geckos[,c(28,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) sd(x,na.rm=T))
 geckos<-cbind(geckos_mean_bodycond,geckos_sd_bodycond[,3:4])
 colnames(geckos)<-c("snakes","sex",paste0(names(geckos[,3:4]),"_mean"),paste0(names(geckos[,5:6]),"_sd"))
-write.csv(geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/geckos.csv")
+write.csv(geckos,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Figures/Fig_condition/geckos.csv")
 ```
 
 
@@ -652,8 +652,8 @@ colnames(geckos_sd)[2:ncol(geckos_sd)]<-c(paste0(names(geckos_sd[2:ncol(geckos_s
 geckos_n<-aggregate(data_geckos[,c(8:15,28,30,31)],by=list(data_geckos$snakes,data_geckos$sex),function(x) length(x[complete.cases(x)]))
 colnames(geckos_n)[2:ncol(geckos_n)]<-c(paste0(names(geckos_n[2:ncol(geckos_n)]),"_n"))
 geckos<-cbind(geckos_mean,geckos_sd[,3:ncol(geckos_sd)],geckos_n[,3:ncol(geckos_n)])
-write.csv(lizards,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/lizards.csv")
-write.csv(skinks,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/skinks.csv")
-write.csv(geckos,file="E:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/geckos.csv")
+write.csv(lizards,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/lizards.csv")
+write.csv(skinks,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/skinks.csv")
+write.csv(geckos,file="F:/Research/Projects/A_2019_CSIC_EvoImpLamp/Communication/Paper/Table S1/geckos.csv")
 ```
 
